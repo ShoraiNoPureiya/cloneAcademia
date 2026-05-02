@@ -36,6 +36,10 @@ export function getApiErrorMessage(error) {
     return 'Sua sessao expirou. Entre novamente para continuar.';
   }
 
+  if (error?.message === 'Network Error') {
+    return `Nao foi possivel conectar na API (${API_BASE_URL}). Confira se a API esta online, se a URL usa https e se o CORS do backend permite este dominio.`;
+  }
+
   const validationErrors = error?.response?.data?.errors;
 
   if (validationErrors) {

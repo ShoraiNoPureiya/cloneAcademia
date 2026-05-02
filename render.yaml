@@ -33,6 +33,8 @@ services:
         sync: false
       - key: Cors__AllowedOrigins__0
         sync: false
+      - key: Cors__AllowedVercelHostSuffix
+        value: .vercel.app
       - key: SeedAdmin__Password
         sync: false
       - key: SeedAdmin__Email

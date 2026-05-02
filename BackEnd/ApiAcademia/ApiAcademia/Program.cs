@@ -32,10 +32,11 @@ builder.Services.AddCors(options =>
         .GetSection("Cors:AllowedOrigins")
         .Get<string[]>()
         ?? ["http://127.0.0.1:5173", "http://localhost:5173"];
+    var allowedVercelHostSuffix = builder.Configuration["Cors:AllowedVercelHostSuffix"] ?? ".vercel.app";
 
     options.AddPolicy("Frontend", policy =>
         policy
-            .WithOrigins(allowedOrigins)
+            .SetIsOriginAllowed(origin => IsAllowedOrigin(origin, allowedOrigins, allowedVercelHostSuffix))
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
@@ -180,4 +181,21 @@ static string? NormalizeDatabaseUrl(string? databaseUrl)
     }
 
     return normalized;
+}
+
+static bool IsAllowedOrigin(string origin, string[] allowedOrigins, string allowedVercelHostSuffix)
+{
+    if (allowedOrigins.Any(allowedOrigin => string.Equals(allowedOrigin, origin, StringComparison.OrdinalIgnoreCase)))
+    {
+        return true;
+    }
+
+    if (!Uri.TryCreate(origin, UriKind.Absolute, out var originUri))
+    {
+        return false;
+    }
+
+    return originUri.Scheme == Uri.UriSchemeHttps &&
+        !string.IsNullOrWhiteSpace(allowedVercelHostSuffix) &&
+        originUri.Host.EndsWith(allowedVercelHostSuffix, StringComparison.OrdinalIgnoreCase);
 }
