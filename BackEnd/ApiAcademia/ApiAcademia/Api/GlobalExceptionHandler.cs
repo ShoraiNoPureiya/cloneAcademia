@@ -2,6 +2,7 @@ using ApiAcademia.Application.Exceptions;
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Npgsql;
 
 namespace ApiAcademia.Api;
 
@@ -14,6 +15,7 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
             AppException appException => appException.StatusCode,
             ValidationException => StatusCodes.Status400BadRequest,
             UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
+            NpgsqlException => StatusCodes.Status503ServiceUnavailable,
             _ => StatusCodes.Status500InternalServerError
         };
 
@@ -29,8 +31,11 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
         var problem = new ProblemDetails
         {
             Status = statusCode,
-            Title = statusCode >= StatusCodes.Status500InternalServerError ? "Erro interno." : "Requisicao invalida.",
-            Detail = statusCode >= StatusCodes.Status500InternalServerError
+            Title = statusCode == StatusCodes.Status503ServiceUnavailable ? "Servico indisponivel." :
+                statusCode >= StatusCodes.Status500InternalServerError ? "Erro interno." : "Requisicao invalida.",
+            Detail = exception is NpgsqlException
+                ? "Banco de dados indisponivel. Verifique a DATABASE_URL do backend no Render."
+                : statusCode >= StatusCodes.Status500InternalServerError
                 ? "Nao foi possivel processar a requisicao."
                 : exception.Message,
             Instance = httpContext.Request.Path
