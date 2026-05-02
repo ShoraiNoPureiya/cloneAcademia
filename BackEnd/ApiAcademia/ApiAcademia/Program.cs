@@ -130,9 +130,16 @@ app.Run();
 
 static string GetPostgresConnectionString(IConfiguration configuration)
 {
-    var databaseUrl = configuration["DATABASE_URL"];
+    var databaseUrl = configuration["DATABASE_URL"]?.Trim();
     if (!string.IsNullOrWhiteSpace(databaseUrl))
     {
+        if (databaseUrl.Contains(';', StringComparison.Ordinal) ||
+            databaseUrl.StartsWith("Host=", StringComparison.OrdinalIgnoreCase) ||
+            databaseUrl.StartsWith("Server=", StringComparison.OrdinalIgnoreCase))
+        {
+            return databaseUrl;
+        }
+
         var databaseUri = new Uri(databaseUrl);
         var userInfo = databaseUri.UserInfo.Split(':', 2);
 

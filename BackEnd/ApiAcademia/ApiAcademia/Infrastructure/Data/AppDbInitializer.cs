@@ -13,7 +13,7 @@ public static class AppDbInitializer
         var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>();
         var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
-        await dbContext.Database.EnsureCreatedAsync();
+        await dbContext.Database.MigrateAsync();
 
         var adminEmail = configuration["SeedAdmin:Email"] ?? "admin@pulsefit.com";
         var adminPassword = configuration["SeedAdmin:Password"] ?? "Admin@123456789";

@@ -3,10 +3,10 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-COPY ApiAcademia/ApiAcademia.csproj ApiAcademia/
+COPY BackEnd/ApiAcademia/ApiAcademia/ApiAcademia.csproj ApiAcademia/
 RUN dotnet restore ApiAcademia/ApiAcademia.csproj
 
-COPY ApiAcademia/ ApiAcademia/
+COPY BackEnd/ApiAcademia/ApiAcademia/ ApiAcademia/
 RUN dotnet publish ApiAcademia/ApiAcademia.csproj \
     --configuration Release \
     --output /app/publish \
