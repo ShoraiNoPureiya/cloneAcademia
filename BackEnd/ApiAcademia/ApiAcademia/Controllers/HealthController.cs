@@ -31,4 +31,46 @@ public sealed class HealthController(AppDbContext dbContext) : ControllerBase
             database = "available"
         });
     }
+
+    [HttpGet("config")]
+    public IActionResult Config(IConfiguration configuration)
+    {
+        return Ok(new
+        {
+            auth = new
+            {
+                requireEmailConfirmation = configuration.GetValue("Auth:RequireEmailConfirmation", false),
+                requireTwoFactor = configuration.GetValue("Auth:RequireTwoFactor", false)
+            },
+            smtp = new
+            {
+                hostConfigured = HasConfig(configuration, "Smtp:Host", "SmtpHost"),
+                userConfigured = HasConfig(configuration, "Smtp:User", "SmtpUser"),
+                passwordConfigured = HasConfig(configuration, "Smtp:Password", "SmtpPassword"),
+                fromConfigured = HasConfig(configuration, "Smtp:From", "SmtpFrom"),
+                port = GetIntConfig(configuration, "Smtp:Port", "SmtpPort", 587),
+                enableSsl = GetBoolConfig(configuration, "Smtp:EnableSsl", "SmtpEnableSsl", true)
+            },
+            mercadoPago = new
+            {
+                accessTokenConfigured = !string.IsNullOrWhiteSpace(configuration["MercadoPago:AccessToken"]),
+                notificationUrlConfigured = !string.IsNullOrWhiteSpace(configuration["MercadoPago:NotificationUrl"])
+            }
+        });
+    }
+
+    private static bool HasConfig(IConfiguration configuration, string sectionKey, string flatKey)
+    {
+        return !string.IsNullOrWhiteSpace(configuration[sectionKey] ?? configuration[flatKey]);
+    }
+
+    private static int GetIntConfig(IConfiguration configuration, string sectionKey, string flatKey, int defaultValue)
+    {
+        return int.TryParse(configuration[sectionKey] ?? configuration[flatKey], out var value) ? value : defaultValue;
+    }
+
+    private static bool GetBoolConfig(IConfiguration configuration, string sectionKey, string flatKey, bool defaultValue)
+    {
+        return bool.TryParse(configuration[sectionKey] ?? configuration[flatKey], out var value) ? value : defaultValue;
+    }
 }
