@@ -9,6 +9,10 @@ services:
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
+      - key: DATABASE_URL
+        sync: false
+      - key: Jwt__SigningKey
+        sync: false
       - key: Jwt__Issuer
         value: ApiAcademia
       - key: Jwt__Audience
@@ -23,5 +27,13 @@ services:
         value: BRL
       - key: MercadoPago__UseSandbox
         value: "false"
+      - key: MercadoPago__AccessToken
+        sync: false
+      - key: MercadoPago__NotificationUrl
+        sync: false
+      - key: Cors__AllowedOrigins__0
+        sync: false
+      - key: SeedAdmin__Password
+        sync: false
       - key: SeedAdmin__Email
         value: admin@pulsefit.com

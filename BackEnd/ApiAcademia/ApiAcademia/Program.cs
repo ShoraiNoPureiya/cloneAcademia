@@ -130,7 +130,7 @@ app.Run();
 
 static string GetPostgresConnectionString(IConfiguration configuration)
 {
-    var databaseUrl = configuration["DATABASE_URL"]?.Trim();
+    var databaseUrl = NormalizeDatabaseUrl(configuration["DATABASE_URL"]);
     if (!string.IsNullOrWhiteSpace(databaseUrl))
     {
         if (databaseUrl.Contains(';', StringComparison.Ordinal) ||
@@ -163,4 +163,21 @@ static string GetPostgresConnectionString(IConfiguration configuration)
     }
 
     throw new InvalidOperationException("Configure DATABASE_URL ou ConnectionStrings:DefaultConnection para PostgreSQL.");
+}
+
+static string? NormalizeDatabaseUrl(string? databaseUrl)
+{
+    if (string.IsNullOrWhiteSpace(databaseUrl))
+    {
+        return null;
+    }
+
+    var normalized = databaseUrl.Trim();
+    var firstWhitespace = normalized.IndexOfAny([' ', '\r', '\n', '\t']);
+    if (firstWhitespace > 0)
+    {
+        normalized = normalized[..firstWhitespace];
+    }
+
+    return normalized;
 }

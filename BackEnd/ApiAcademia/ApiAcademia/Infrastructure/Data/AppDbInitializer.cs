@@ -12,8 +12,18 @@ public static class AppDbInitializer
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>();
         var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+        var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("DatabaseStartup");
+        var environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
 
-        await dbContext.Database.MigrateAsync();
+        try
+        {
+            await MigrateWithRetryAsync(dbContext, logger);
+        }
+        catch (Exception exception) when (environment.IsProduction())
+        {
+            logger.LogError(exception, "Nao foi possivel conectar/migrar o PostgreSQL no startup. A API continuara online para o Render, mas endpoints com banco falharao ate a DATABASE_URL estar correta.");
+            return;
+        }
 
         var adminEmail = configuration["SeedAdmin:Email"] ?? "admin@pulsefit.com";
         var adminPassword = configuration["SeedAdmin:Password"] ?? "Admin@123456789";
@@ -35,5 +45,26 @@ public static class AppDbInitializer
 
         await dbContext.Users.AddAsync(admin);
         await dbContext.SaveChangesAsync();
+    }
+
+    private static async Task MigrateWithRetryAsync(AppDbContext dbContext, ILogger logger)
+    {
+        const int attempts = 6;
+
+        for (var attempt = 1; attempt <= attempts; attempt++)
+        {
+            try
+            {
+                await dbContext.Database.MigrateAsync();
+                return;
+            }
+            catch (Exception exception) when (attempt < attempts)
+            {
+                logger.LogWarning(exception, "Falha ao conectar/migrar PostgreSQL. Tentativa {Attempt}/{Attempts}.", attempt, attempts);
+                await Task.Delay(TimeSpan.FromSeconds(10));
+            }
+        }
+
+        await dbContext.Database.MigrateAsync();
     }
 }
