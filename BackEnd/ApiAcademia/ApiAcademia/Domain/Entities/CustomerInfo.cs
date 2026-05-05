@@ -10,9 +10,9 @@ public sealed class CustomerInfo
     [Required, MaxLength(14)]
     public string Cpf { get; set; } = string.Empty;
 
-    [Required, MaxLength(8)]
+    [MaxLength(8)]
     public string ZipCode { get; set; } = string.Empty;
 
-    [Required, MaxLength(240)]
+    [MaxLength(240)]
     public string Address { get; set; } = string.Empty;
 }

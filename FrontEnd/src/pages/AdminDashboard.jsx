@@ -245,7 +245,9 @@ export default function AdminDashboard() {
                     item.productName,
                     item.quantity,
                     `${item.customerFullName} - CPF ${formatCpf(item.customerCpf)}`,
-                    `${formatZipCode(item.customerZipCode)} - ${item.customerAddress}`,
+                    item.fulfillmentType === 'Pickup'
+                      ? 'Retirada no local'
+                      : `${formatZipCode(item.customerZipCode)} - ${item.customerAddress}`,
                     formatCurrency(item.totalAmount),
                     item.status
                   ])}

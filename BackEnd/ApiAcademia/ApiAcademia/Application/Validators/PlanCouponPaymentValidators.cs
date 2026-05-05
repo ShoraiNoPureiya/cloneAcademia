@@ -32,11 +32,24 @@ public sealed class CheckoutRequestValidator : AbstractValidator<CheckoutRequest
     {
         RuleFor(x => x.PlanId).NotEmpty();
         RuleFor(x => x.CustomerInfo).NotNull().SetValidator(new CustomerInfoRequestValidator());
+        RuleFor(x => x.CustomerInfo.ZipCode)
+            .NotEmpty()
+            .Matches("^\\d{8}$")
+            .WithMessage("CEP deve conter 8 numeros.")
+            .When(x => x.CustomerInfo is not null);
+        RuleFor(x => x.CustomerInfo.Address)
+            .NotEmpty()
+            .Length(8, 240)
+            .Must(NotContainHtml)
+            .WithMessage("Endereco invalido.")
+            .When(x => x.CustomerInfo is not null);
         RuleFor(x => x.CouponCode)
             .MaximumLength(40)
             .Matches("^[A-Za-z0-9_-]+$")
             .When(x => !string.IsNullOrWhiteSpace(x.CouponCode));
     }
+
+    private static bool NotContainHtml(string value) => !value.Contains('<') && !value.Contains('>');
 }
 
 public sealed class CustomerInfoRequestValidator : AbstractValidator<CustomerInfoRequest>
@@ -45,8 +58,10 @@ public sealed class CustomerInfoRequestValidator : AbstractValidator<CustomerInf
     {
         RuleFor(x => x.FullName).NotEmpty().Length(5, 160).Must(NotContainHtml);
         RuleFor(x => x.Cpf).NotEmpty().Must(BeCpf).WithMessage("CPF invalido.");
-        RuleFor(x => x.ZipCode).NotEmpty().Matches("^\\d{8}$").WithMessage("CEP deve conter 8 numeros.");
-        RuleFor(x => x.Address).NotEmpty().Length(8, 240).Must(NotContainHtml);
+        RuleFor(x => x.ZipCode).NotEmpty().Matches("^\\d{8}$").WithMessage("CEP deve conter 8 numeros.")
+            .When(x => !string.IsNullOrWhiteSpace(x.ZipCode));
+        RuleFor(x => x.Address).Length(8, 240).Must(NotContainHtml)
+            .When(x => !string.IsNullOrWhiteSpace(x.Address));
     }
 
     private static bool NotContainHtml(string value) => !value.Contains('<') && !value.Contains('>');
@@ -139,5 +154,23 @@ public sealed class CreateProductPurchaseRequestValidator : AbstractValidator<Cr
     {
         RuleFor(x => x.Quantity).InclusiveBetween(1, 50);
         RuleFor(x => x.CustomerInfo).NotNull().SetValidator(new CustomerInfoRequestValidator());
+        RuleFor(x => x.FulfillmentType).NotEmpty().Must(BeFulfillmentType).WithMessage("Tipo de entrega invalido.");
+        RuleFor(x => x.CustomerInfo.ZipCode)
+            .NotEmpty()
+            .Matches("^\\d{8}$")
+            .WithMessage("CEP deve conter 8 numeros.")
+            .When(x => x.CustomerInfo is not null && IsDelivery(x.FulfillmentType));
+        RuleFor(x => x.CustomerInfo.Address)
+            .NotEmpty()
+            .Length(8, 240)
+            .Must(value => !value.Contains('<') && !value.Contains('>'))
+            .WithMessage("Endereco invalido.")
+            .When(x => x.CustomerInfo is not null && IsDelivery(x.FulfillmentType));
     }
+
+    private static bool BeFulfillmentType(string value) => IsDelivery(value) || IsPickup(value);
+
+    private static bool IsDelivery(string value) => string.Equals(value, "Delivery", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsPickup(string value) => string.Equals(value, "Pickup", StringComparison.OrdinalIgnoreCase);
 }

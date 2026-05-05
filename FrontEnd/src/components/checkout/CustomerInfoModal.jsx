@@ -9,17 +9,27 @@ const initialForm = {
   address: ''
 };
 
-export default function CustomerInfoModal({ open, title, description, loading, error, onClose, onSubmit }) {
+export default function CustomerInfoModal({
+  open,
+  title,
+  description,
+  loading,
+  error,
+  requireAddress = true,
+  fulfillmentType,
+  onFulfillmentTypeChange,
+  onClose,
+  onSubmit
+}) {
   const [form, setForm] = useState(initialForm);
 
   const isValid = useMemo(() => {
     return (
       form.fullName.trim().length >= 5 &&
       onlyDigits(form.cpf).length === 11 &&
-      onlyDigits(form.zipCode).length === 8 &&
-      form.address.trim().length >= 8
+      (!requireAddress || (onlyDigits(form.zipCode).length === 8 && form.address.trim().length >= 8))
     );
-  }, [form]);
+  }, [form, requireAddress]);
 
   if (!open) {
     return null;
@@ -34,8 +44,8 @@ export default function CustomerInfoModal({ open, title, description, loading, e
     onSubmit({
       fullName: form.fullName.trim(),
       cpf: onlyDigits(form.cpf),
-      zipCode: onlyDigits(form.zipCode),
-      address: form.address.trim()
+      zipCode: requireAddress ? onlyDigits(form.zipCode) : '',
+      address: requireAddress ? form.address.trim() : ''
     });
   }
 
@@ -69,6 +79,24 @@ export default function CustomerInfoModal({ open, title, description, loading, e
             onChange={(event) => setForm({ ...form, fullName: event.target.value })}
             required
           />
+          {onFulfillmentTypeChange && (
+            <div className="grid gap-3 rounded-md border border-academy-line bg-black/20 p-2 sm:grid-cols-2">
+              <button
+                type="button"
+                className={`rounded-md px-4 py-3 text-sm font-black transition ${fulfillmentType === 'Delivery' ? 'bg-academy-neon text-academy-ink' : 'bg-white/5 text-zinc-300 hover:bg-white/10'}`}
+                onClick={() => onFulfillmentTypeChange('Delivery')}
+              >
+                Entrega
+              </button>
+              <button
+                type="button"
+                className={`rounded-md px-4 py-3 text-sm font-black transition ${fulfillmentType === 'Pickup' ? 'bg-academy-neon text-academy-ink' : 'bg-white/5 text-zinc-300 hover:bg-white/10'}`}
+                onClick={() => onFulfillmentTypeChange('Pickup')}
+              >
+                Retirar no local
+              </button>
+            </div>
+          )}
           <div className="grid gap-4 sm:grid-cols-2">
             <input
               className="field"
@@ -79,23 +107,31 @@ export default function CustomerInfoModal({ open, title, description, loading, e
               onChange={(event) => setForm({ ...form, cpf: formatCpf(event.target.value) })}
               required
             />
-            <input
-              className="field"
-              placeholder="CEP"
-              inputMode="numeric"
-              maxLength={9}
-              value={form.zipCode}
-              onChange={(event) => setForm({ ...form, zipCode: formatZipCode(event.target.value) })}
+            {requireAddress && (
+              <input
+                className="field"
+                placeholder="CEP"
+                inputMode="numeric"
+                maxLength={9}
+                value={form.zipCode}
+                onChange={(event) => setForm({ ...form, zipCode: formatZipCode(event.target.value) })}
+                required
+              />
+            )}
+          </div>
+          {requireAddress ? (
+            <textarea
+              className="field min-h-24"
+              placeholder="Endereco completo: rua, numero, bairro, cidade e UF"
+              value={form.address}
+              onChange={(event) => setForm({ ...form, address: event.target.value })}
               required
             />
-          </div>
-          <textarea
-            className="field min-h-24"
-            placeholder="Endereco completo: rua, numero, bairro, cidade e UF"
-            value={form.address}
-            onChange={(event) => setForm({ ...form, address: event.target.value })}
-            required
-          />
+          ) : (
+            <div className="rounded-md border border-academy-line bg-white/5 p-4 text-sm leading-6 text-zinc-300">
+              Voce retirara o produto no local. O administrador vera seu nome e CPF para conferir a retirada.
+            </div>
+          )}
           <button type="submit" className="btn-primary w-full" disabled={!isValid || loading}>
             {loading && <Loader2 className="animate-spin" size={18} />}
             Continuar

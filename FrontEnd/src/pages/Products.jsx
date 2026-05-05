@@ -16,6 +16,7 @@ export default function Products() {
   const [message, setMessage] = useState('');
   const [buyingId, setBuyingId] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [fulfillmentType, setFulfillmentType] = useState('Delivery');
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -55,13 +56,14 @@ export default function Products() {
     setMessage('');
 
     try {
-      const purchase = await productsService.purchase(product.id, 1, customerInfo);
+      const purchase = await productsService.purchase(product.id, 1, customerInfo, fulfillmentType);
       setProducts((current) =>
         current.map((item) =>
           item.id === product.id ? { ...item, stockQuantity: Math.max(0, item.stockQuantity - 1) } : item
         )
       );
       setSelectedProduct(null);
+      setFulfillmentType('Delivery');
 
       if (purchase.checkoutUrl) {
         window.location.assign(purchase.checkoutUrl);
@@ -116,6 +118,7 @@ export default function Products() {
                         setMessage('Entre na sua conta para comprar produtos.');
                         return;
                       }
+                      setFulfillmentType('Delivery');
                       setSelectedProduct(product);
                     }}
                     disabled={buyingId === product.id || product.stockQuantity <= 0}
@@ -130,10 +133,16 @@ export default function Products() {
         <CustomerInfoModal
           open={Boolean(selectedProduct)}
           title="Dados para entrega"
-          description="Essas informacoes ficam visiveis para o administrador enviar o produto corretamente."
+          description="Escolha entrega ou retirada. Endereco so e necessario quando o produto for enviado."
           loading={Boolean(buyingId)}
           error={message}
-          onClose={() => setSelectedProduct(null)}
+          requireAddress={fulfillmentType === 'Delivery'}
+          fulfillmentType={fulfillmentType}
+          onFulfillmentTypeChange={setFulfillmentType}
+          onClose={() => {
+            setSelectedProduct(null);
+            setFulfillmentType('Delivery');
+          }}
           onSubmit={(customerInfo) => handlePurchase(selectedProduct, customerInfo)}
         />
       </div>

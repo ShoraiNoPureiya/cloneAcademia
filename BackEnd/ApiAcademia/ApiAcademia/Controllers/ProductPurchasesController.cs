@@ -49,6 +49,10 @@ public sealed class ProductPurchasesController(
             throw new AppException("Produto indisponivel.");
         }
 
+        var fulfillmentType = string.Equals(request.FulfillmentType, "Pickup", StringComparison.OrdinalIgnoreCase)
+            ? "Pickup"
+            : "Delivery";
+
         var purchase = new ProductPurchase
         {
             UserId = userId,
@@ -57,12 +61,13 @@ public sealed class ProductPurchasesController(
             UnitPrice = product.Price,
             TotalAmount = product.Price * request.Quantity,
             Status = "Pending",
+            FulfillmentType = fulfillmentType,
             CustomerInfo = new CustomerInfo
             {
                 FullName = request.CustomerInfo.FullName.Trim(),
                 Cpf = OnlyDigits(request.CustomerInfo.Cpf),
-                ZipCode = OnlyDigits(request.CustomerInfo.ZipCode),
-                Address = request.CustomerInfo.Address.Trim()
+                ZipCode = fulfillmentType == "Delivery" ? OnlyDigits(request.CustomerInfo.ZipCode ?? string.Empty) : string.Empty,
+                Address = fulfillmentType == "Delivery" ? (request.CustomerInfo.Address ?? string.Empty).Trim() : "Retirada no local"
             }
         };
 

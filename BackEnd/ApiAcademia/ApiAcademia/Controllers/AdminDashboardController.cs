@@ -65,6 +65,7 @@ public sealed class AdminDashboardController(AppDbContext dbContext) : Controlle
                 x.CustomerInfo.Cpf,
                 x.CustomerInfo.ZipCode,
                 x.CustomerInfo.Address,
+                x.FulfillmentType,
                 x.TotalAmount,
                 x.Status,
                 x.CreatedAt))

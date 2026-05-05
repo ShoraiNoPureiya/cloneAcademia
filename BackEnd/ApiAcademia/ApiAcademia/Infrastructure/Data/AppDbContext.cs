@@ -51,6 +51,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             entity.Property(x => x.TotalAmount).HasPrecision(18, 2);
             entity.Property(x => x.Status).HasMaxLength(40);
             entity.Property(x => x.PaymentPreferenceId).HasMaxLength(120);
+            entity.Property(x => x.FulfillmentType).HasMaxLength(20);
             entity.OwnsOne(x => x.CustomerInfo, customer =>
             {
                 customer.Property(x => x.FullName).HasColumnName("CustomerFullName").HasMaxLength(160);

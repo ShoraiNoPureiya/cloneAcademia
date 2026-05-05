@@ -31,6 +31,9 @@ public sealed class ProductPurchase
     [MaxLength(120)]
     public string? PaymentPreferenceId { get; set; }
 
+    [Required, MaxLength(20)]
+    public string FulfillmentType { get; set; } = "Delivery";
+
     public CustomerInfo CustomerInfo { get; set; } = new();
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;

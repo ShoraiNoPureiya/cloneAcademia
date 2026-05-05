@@ -9,8 +9,8 @@ export const productsService = {
     }));
   },
 
-  async purchase(productId, quantity = 1, customerInfo) {
-    const { data } = await api.post(`/api/products/${productId}/purchase`, { quantity, customerInfo });
+  async purchase(productId, quantity = 1, customerInfo, fulfillmentType = 'Delivery') {
+    const { data } = await api.post(`/api/products/${productId}/purchase`, { quantity, fulfillmentType, customerInfo });
     return data;
   }
 };

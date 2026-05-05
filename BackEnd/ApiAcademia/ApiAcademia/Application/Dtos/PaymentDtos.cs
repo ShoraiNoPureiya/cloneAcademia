@@ -1,6 +1,6 @@
 namespace ApiAcademia.Application.Dtos;
 
-public sealed record CustomerInfoRequest(string FullName, string Cpf, string ZipCode, string Address);
+public sealed record CustomerInfoRequest(string FullName, string Cpf, string? ZipCode, string? Address);
 
 public sealed record CheckoutRequest(Guid PlanId, string? CouponCode, CustomerInfoRequest CustomerInfo);
 

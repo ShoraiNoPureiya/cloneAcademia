@@ -169,8 +169,8 @@ public sealed class CheckoutService(
         {
             FullName = request.FullName.Trim(),
             Cpf = OnlyDigits(request.Cpf),
-            ZipCode = OnlyDigits(request.ZipCode),
-            Address = request.Address.Trim()
+            ZipCode = OnlyDigits(request.ZipCode ?? string.Empty),
+            Address = (request.Address ?? string.Empty).Trim()
         };
     }
 

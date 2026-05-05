@@ -32,6 +32,7 @@ public sealed record AdminProductPurchaseRow(
     string CustomerCpf,
     string CustomerZipCode,
     string CustomerAddress,
+    string FulfillmentType,
     decimal TotalAmount,
     string Status,
     DateTimeOffset CreatedAt);
@@ -41,7 +42,7 @@ public sealed record AdminDashboardResponse(
     IReadOnlyList<AdminSubscriptionRow> RecentSubscriptions,
     IReadOnlyList<AdminProductPurchaseRow> RecentProductPurchases);
 
-public sealed record CreateProductPurchaseRequest(int Quantity, CustomerInfoRequest CustomerInfo);
+public sealed record CreateProductPurchaseRequest(int Quantity, string FulfillmentType, CustomerInfoRequest CustomerInfo);
 public sealed record ProductPurchaseResponse(
     Guid Id,
     Guid ProductId,
