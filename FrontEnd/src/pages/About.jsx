@@ -1,4 +1,5 @@
-import { Award, CalendarCheck, Dumbbell, HeartPulse, MapPin, ShieldCheck, Users, Zap } from 'lucide-react';
+import { Award, CalendarCheck, ChevronLeft, ChevronRight, Dumbbell, HeartPulse, MapPin, ShieldCheck, Users, Zap } from 'lucide-react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import OptimizedImage from '../components/ui/OptimizedImage.jsx';
 import SectionHeading from '../components/ui/SectionHeading.jsx';
@@ -8,6 +9,65 @@ const images = [
   'https://images.unsplash.com/photo-1605296867304-46d5465a13f1?auto=format&fit=crop&w=900&q=80',
   'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?auto=format&fit=crop&w=900&q=80',
   'https://images.unsplash.com/photo-1599058917212-d750089bc07e?auto=format&fit=crop&w=900&q=80'
+];
+
+const missionImages = [
+  {
+    src: images[0],
+    alt: 'Aluno treinando em academia escura e moderna',
+    label: 'Musculacao'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=900&q=80',
+    alt: 'Atleta treinando com halteres',
+    label: 'Forca'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=900&q=80',
+    alt: 'Sala de musculacao com equipamentos modernos',
+    label: 'Estrutura'
+  }
+];
+
+const methodImages = [
+  {
+    src: images[1],
+    alt: 'Atleta realizando treino de forca',
+    label: 'Metodo'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=900&q=80',
+    alt: 'Aluno treinando agachamento com barra',
+    label: 'Tecnica'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=900&q=80',
+    alt: 'Pessoa treinando mobilidade em academia',
+    label: 'Acompanhamento'
+  }
+];
+
+const visitImages = [
+  {
+    src: images[2],
+    alt: 'Equipamentos modernos da academia',
+    label: 'Equipamentos'
+  },
+  {
+    src: images[3],
+    alt: 'Treino acompanhado em academia',
+    label: 'Acompanhamento'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&w=900&q=80',
+    alt: 'Area de pesos livres da academia',
+    label: 'Pesos livres'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1554284126-aa88f22d8b74?auto=format&fit=crop&w=900&q=80',
+    alt: 'Bicicletas ergometricas em academia moderna',
+    label: 'Cardio'
+  }
 ];
 
 const pillars = [
@@ -48,19 +108,11 @@ export default function About() {
                 </p>
               </div>
 
-              <OptimizedImage
-                src={images[0]}
-                alt="Aluno treinando em academia escura e moderna"
-                className="aspect-[16/11] rounded-lg border border-white/10 object-cover shadow-violet"
-              />
+              <ImageCarousel images={missionImages} shadow="shadow-violet" />
             </div>
 
             <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
-              <OptimizedImage
-                src={images[1]}
-                alt="Atleta realizando treino de forca"
-                className="aspect-[16/11] rounded-lg border border-white/10 object-cover shadow-glow lg:order-1"
-              />
+              <ImageCarousel images={methodImages} shadow="shadow-glow" className="lg:order-1" />
               <div className="space-y-5 text-zinc-300 lg:order-2">
                 <p className="eyebrow">Equipe e metodo</p>
                 <h2 className="text-3xl font-black leading-tight text-white sm:text-4xl">
@@ -131,21 +183,67 @@ export default function About() {
                 Ver planos
               </Link>
             </div>
-            <div className="grid gap-5 sm:grid-cols-2">
-              <OptimizedImage
-                src={images[2]}
-                alt="Equipamentos modernos da academia"
-                className="h-full min-h-72 rounded-lg border border-white/10 object-cover"
-              />
-              <OptimizedImage
-                src={images[3]}
-                alt="Treino acompanhado em academia"
-                className="h-full min-h-72 rounded-lg border border-white/10 object-cover"
-              />
-            </div>
+            <ImageCarousel images={visitImages} className="min-h-72" aspect="aspect-[16/12]" />
           </div>
         </div>
       </section>
     </>
+  );
+}
+
+function ImageCarousel({ images: carouselImages, className = '', shadow = 'shadow-violet', aspect = 'aspect-[16/11]' }) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const activeImage = carouselImages[activeIndex];
+
+  function move(direction) {
+    setActiveIndex((current) => (current + direction + carouselImages.length) % carouselImages.length);
+  }
+
+  return (
+    <div className={`group relative overflow-hidden rounded-lg border border-white/10 bg-black ${shadow} ${className}`}>
+      <OptimizedImage
+        src={activeImage.src}
+        alt={activeImage.alt}
+        className={`${aspect} w-full object-cover transition duration-500 group-hover:scale-[1.03]`}
+      />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/80 to-transparent" />
+
+      <div className="absolute left-4 top-4 rounded-md border border-white/10 bg-black/60 px-3 py-2 text-xs font-black uppercase tracking-wide text-academy-neon backdrop-blur">
+        {activeImage.label}
+      </div>
+
+      <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+        <button
+          type="button"
+          className="grid h-11 w-11 place-items-center rounded-md border border-white/10 bg-black/55 text-white backdrop-blur transition hover:bg-academy-neon hover:text-academy-ink"
+          onClick={() => move(-1)}
+          aria-label="Imagem anterior"
+        >
+          <ChevronLeft size={22} />
+        </button>
+      </div>
+      <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+        <button
+          type="button"
+          className="grid h-11 w-11 place-items-center rounded-md border border-white/10 bg-black/55 text-white backdrop-blur transition hover:bg-academy-neon hover:text-academy-ink"
+          onClick={() => move(1)}
+          aria-label="Proxima imagem"
+        >
+          <ChevronRight size={22} />
+        </button>
+      </div>
+
+      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
+        {carouselImages.map((image, index) => (
+          <button
+            type="button"
+            key={image.src}
+            className={`h-2 rounded-full transition ${index === activeIndex ? 'w-8 bg-academy-neon' : 'w-2 bg-white/40 hover:bg-white/70'}`}
+            onClick={() => setActiveIndex(index)}
+            aria-label={`Ir para imagem ${index + 1}`}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
