@@ -42,6 +42,11 @@ public sealed class HealthController(AppDbContext dbContext) : ControllerBase
                 requireEmailConfirmation = configuration.GetValue("Auth:RequireEmailConfirmation", false),
                 requireTwoFactor = configuration.GetValue("Auth:RequireTwoFactor", false)
             },
+            database = new
+            {
+                databaseUrlConfigured = !string.IsNullOrWhiteSpace(configuration["DATABASE_URL"]),
+                defaultConnectionConfigured = !string.IsNullOrWhiteSpace(configuration.GetConnectionString("DefaultConnection"))
+            },
             smtp = new
             {
                 hostConfigured = HasConfig(configuration, "Smtp:Host", "SmtpHost"),
