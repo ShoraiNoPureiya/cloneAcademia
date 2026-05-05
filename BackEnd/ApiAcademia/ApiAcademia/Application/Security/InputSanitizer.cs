@@ -1,4 +1,4 @@
-using System.Text.Encodings.Web;
+using System.Net;
 using System.Text.RegularExpressions;
 
 namespace ApiAcademia.Application.Security;
@@ -17,8 +17,8 @@ public sealed partial class InputSanitizer : IInputSanitizer
             return string.Empty;
         }
 
-        var withoutTags = HtmlTagRegex().Replace(value.Trim(), string.Empty);
-        return HtmlEncoder.Default.Encode(withoutTags);
+        var decoded = WebUtility.HtmlDecode(value.Trim());
+        return HtmlTagRegex().Replace(decoded, string.Empty);
     }
 
     [GeneratedRegex("<.*?>", RegexOptions.Compiled)]
