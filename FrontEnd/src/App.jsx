@@ -6,6 +6,8 @@ import About from './pages/About.jsx';
 import Products from './pages/Products.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
+import ConfirmEmail from './pages/ConfirmEmail.jsx';
+import ForgotPassword from './pages/ForgotPassword.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
 import MyPurchases from './pages/MyPurchases.jsx';
 
@@ -19,6 +21,8 @@ export default function App() {
         <Route path="/produtos" element={<Products />} />
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Register />} />
+        <Route path="/confirmar-email" element={<ConfirmEmail />} />
+        <Route path="/esqueci-senha" element={<ForgotPassword />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/minhas-compras" element={<MyPurchases />} />
       </Route>

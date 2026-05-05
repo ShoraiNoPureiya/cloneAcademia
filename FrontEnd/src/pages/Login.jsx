@@ -1,4 +1,4 @@
-import { Loader2, ShieldCheck } from 'lucide-react';
+import { KeyRound, Loader2, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import StatusMessage from '../components/ui/StatusMessage.jsx';
@@ -76,17 +76,31 @@ export default function Login() {
                 onChange={(event) => setForm({ ...form, password: event.target.value })}
                 required
               />
+              <div className="flex justify-end">
+                <Link className="text-sm font-bold text-academy-neon hover:brightness-110" to="/esqueci-senha">
+                  Esqueci minha senha
+                </Link>
+              </div>
             </>
           ) : (
-            <input
-              className="field"
-              inputMode="numeric"
-              maxLength={6}
-              placeholder="Codigo 2FA"
-              value={form.code}
-              onChange={(event) => setForm({ ...form, code: event.target.value })}
-              required
-            />
+            <div className="rounded-lg border border-academy-line bg-black/25 p-4">
+              <div className="mb-3 flex items-center gap-2 text-sm font-bold text-academy-neon">
+                <KeyRound size={17} /> Verificacao em duas etapas
+              </div>
+              <p className="mb-4 text-sm leading-6 text-zinc-400">
+                Enviamos um codigo de 6 digitos para {pendingEmail}. Digite para liberar seu acesso.
+              </p>
+              <input
+                className="field text-center text-lg font-black tracking-[0.35em]"
+                inputMode="numeric"
+                maxLength={6}
+                pattern="[0-9]{6}"
+                placeholder="000000"
+                value={form.code}
+                onChange={(event) => setForm({ ...form, code: event.target.value.replace(/\D/g, '').slice(0, 6) })}
+                required
+              />
+            </div>
           )}
 
           <button type="submit" className="btn-primary w-full" disabled={loading}>

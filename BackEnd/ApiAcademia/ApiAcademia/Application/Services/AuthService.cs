@@ -37,7 +37,7 @@ public sealed class AuthService(
 
         var requireEmailConfirmation = configuration.GetValue("Auth:RequireEmailConfirmation", false);
         var requireTwoFactor = configuration.GetValue("Auth:RequireTwoFactor", false);
-        var token = requireEmailConfirmation ? tokenGenerator.GenerateToken() : null;
+        var token = requireEmailConfirmation ? tokenGenerator.GenerateNumericCode() : null;
         var user = new User
         {
             Name = sanitizer.Clean(request.Name),
@@ -108,8 +108,7 @@ public sealed class AuthService(
     {
         var user = await GetUserOrInvalidCredentialsAsync(request.Email, cancellationToken);
         if (user.TwoFactorCodeExpiresAt <= DateTimeOffset.UtcNow ||
-            string.IsNullOrWhiteSpace(user.TwoFactorCodeHash) ||
-            user.TwoFactorCodeHash != tokenHasher.Hash(request.Code))
+            !tokenHasher.Verify(request.Code, user.TwoFactorCodeHash))
         {
             throw new AppException("Codigo invalido ou expirado.", StatusCodes.Status401Unauthorized);
         }
@@ -125,7 +124,7 @@ public sealed class AuthService(
     {
         var user = await GetUserOrInvalidCredentialsAsync(request.Email, cancellationToken);
         if (user.EmailConfirmationTokenExpiresAt <= DateTimeOffset.UtcNow ||
-            user.EmailConfirmationTokenHash != tokenHasher.Hash(request.Token))
+            !tokenHasher.Verify(request.Token, user.EmailConfirmationTokenHash))
         {
             throw new AppException("Token invalido ou expirado.");
         }
@@ -146,7 +145,7 @@ public sealed class AuthService(
             return;
         }
 
-        var token = tokenGenerator.GenerateToken();
+        var token = tokenGenerator.GenerateNumericCode();
         user.PasswordResetTokenHash = tokenHasher.Hash(token);
         user.PasswordResetTokenExpiresAt = DateTimeOffset.UtcNow.AddMinutes(30);
         userRepository.Update(user);
@@ -162,7 +161,7 @@ public sealed class AuthService(
     {
         var user = await GetUserOrInvalidCredentialsAsync(request.Email, cancellationToken);
         if (user.PasswordResetTokenExpiresAt <= DateTimeOffset.UtcNow ||
-            user.PasswordResetTokenHash != tokenHasher.Hash(request.Token))
+            !tokenHasher.Verify(request.Token, user.PasswordResetTokenHash))
         {
             throw new AppException("Token invalido ou expirado.");
         }
@@ -186,8 +185,8 @@ public sealed class AuthService(
     {
         return $"""
             <h2>Confirme seu email, {name}</h2>
-            <p>Use o codigo abaixo para confirmar sua conta na PulseFit:</p>
-            <p style="font-size:20px;font-weight:700;letter-spacing:2px;">{token}</p>
+            <p>Use o codigo de 6 digitos abaixo para confirmar sua conta na PulseFit:</p>
+            <p style="font-size:32px;font-weight:800;letter-spacing:6px;">{token}</p>
             <p>Esse codigo expira em 24 horas.</p>
             """;
     }
@@ -206,9 +205,9 @@ public sealed class AuthService(
     {
         return $"""
             <h2>Redefinicao de senha</h2>
-            <p>Use o token abaixo para redefinir sua senha:</p>
-            <p style="font-size:20px;font-weight:700;letter-spacing:2px;">{token}</p>
-            <p>Esse token expira em 30 minutos.</p>
+            <p>Use o codigo de 6 digitos abaixo para redefinir sua senha:</p>
+            <p style="font-size:32px;font-weight:800;letter-spacing:6px;">{token}</p>
+            <p>Esse codigo expira em 30 minutos.</p>
             """;
     }
 }

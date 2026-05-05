@@ -9,7 +9,7 @@ namespace ApiAcademia.Controllers;
 
 [ApiController]
 [Route("api/auth")]
-public sealed class AuthController(IAuthService authService) : ControllerBase
+public sealed class AuthController(IAuthService authService, IConfiguration configuration) : ControllerBase
 {
     [HttpPost("register")]
     public async Task<IActionResult> Register(
@@ -23,7 +23,14 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
         }
 
         await authService.RegisterAsync(request, cancellationToken);
-        return Accepted(new { message = "Cadastro criado. Confirme seu email para acessar." });
+        var requiresEmailConfirmation = configuration.GetValue("Auth:RequireEmailConfirmation", false);
+        return Accepted(new
+        {
+            requiresEmailConfirmation,
+            message = requiresEmailConfirmation
+                ? "Cadastro criado. Confirme seu email para acessar."
+                : "Cadastro criado. Voce ja pode entrar."
+        });
     }
 
     [HttpPost("login")]
@@ -57,6 +64,7 @@ public sealed class AuthController(IAuthService authService) : ControllerBase
     }
 
     [HttpPost("confirm-email")]
+    [EnableRateLimiting("login")]
     public async Task<IActionResult> ConfirmEmail(
         ConfirmEmailRequest request,
         IValidator<ConfirmEmailRequest> validator,

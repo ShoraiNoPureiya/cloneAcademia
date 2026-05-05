@@ -1,6 +1,6 @@
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import StatusMessage from '../components/ui/StatusMessage.jsx';
 import { getApiErrorMessage } from '../services/api.js';
 import { authService } from '../services/authService.js';
@@ -10,6 +10,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [type, setType] = useState('info');
+  const navigate = useNavigate();
   const passwordChecks = getPasswordChecks(form.password);
   const passwordIsValid = passwordChecks.every((check) => check.valid);
 
@@ -26,9 +27,15 @@ export default function Register() {
     setMessage('');
 
     try {
-      await authService.register(form);
+      const result = await authService.register(form);
       setType('success');
-      setMessage('Cadastro criado. Voce ja pode entrar.');
+      if (result.requiresEmailConfirmation) {
+        setMessage('Cadastro criado. Enviamos um codigo de 6 digitos para seu email.');
+        navigate(`/confirmar-email?email=${encodeURIComponent(form.email)}`);
+      } else {
+        setMessage('Cadastro criado. Voce ja pode entrar.');
+        navigate('/login');
+      }
       setForm({ name: '', email: '', password: '' });
     } catch (error) {
       setType('error');

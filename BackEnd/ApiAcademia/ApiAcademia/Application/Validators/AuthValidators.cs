@@ -44,7 +44,7 @@ public sealed class ConfirmEmailRequestValidator : AbstractValidator<ConfirmEmai
     public ConfirmEmailRequestValidator()
     {
         RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(180);
-        RuleFor(x => x.Token).NotEmpty().MaximumLength(256);
+        RuleFor(x => x.Token).NotEmpty().Matches("^\\d{6}$");
     }
 }
 
@@ -61,7 +61,7 @@ public sealed class ResetPasswordRequestValidator : AbstractValidator<ResetPassw
     public ResetPasswordRequestValidator()
     {
         RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(180);
-        RuleFor(x => x.Token).NotEmpty().MaximumLength(256);
+        RuleFor(x => x.Token).NotEmpty().Matches("^\\d{6}$");
         RuleFor(x => x.NewPassword).SetValidator(new PasswordValidator());
     }
 }

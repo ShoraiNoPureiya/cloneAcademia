@@ -18,8 +18,7 @@ public sealed class SecureTokenGenerator : ISecureTokenGenerator
 
     public string GenerateNumericCode(int digits = 6)
     {
-        var min = (int)Math.Pow(10, digits - 1);
-        var max = (int)Math.Pow(10, digits) - 1;
-        return RandomNumberGenerator.GetInt32(min, max).ToString();
+        var max = (int)Math.Pow(10, digits);
+        return RandomNumberGenerator.GetInt32(0, max).ToString($"D{digits}");
     }
 }
