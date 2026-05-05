@@ -16,11 +16,21 @@ public sealed class ProductPurchase
 
     public Product? Product { get; set; }
 
+    public Guid? CouponId { get; set; }
+
+    public Coupon? Coupon { get; set; }
+
     [Range(1, 999999)]
     public int Quantity { get; set; }
 
     [Range(0.01, 999999.99)]
     public decimal UnitPrice { get; set; }
+
+    [Range(0.01, 999999.99)]
+    public decimal OriginalAmount { get; set; }
+
+    [Range(0, 999999.99)]
+    public decimal DiscountAmount { get; set; }
 
     [Range(0.01, 999999.99)]
     public decimal TotalAmount { get; set; }

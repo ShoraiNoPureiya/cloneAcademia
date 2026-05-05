@@ -55,6 +55,7 @@ public sealed class AdminDashboardController(AppDbContext dbContext) : Controlle
             .AsNoTracking()
             .Include(x => x.User)
             .Include(x => x.Product)
+            .Include(x => x.Coupon)
             .OrderByDescending(x => x.CreatedAt)
             .Take(8)
             .Select(x => new AdminProductPurchaseRow(
@@ -62,6 +63,7 @@ public sealed class AdminDashboardController(AppDbContext dbContext) : Controlle
                 x.User!.Name,
                 x.User.Email,
                 x.Product!.Name,
+                x.Coupon != null ? x.Coupon.Code : null,
                 x.Quantity,
                 x.CustomerInfo.FullName,
                 x.CustomerInfo.Cpf,
@@ -70,6 +72,8 @@ public sealed class AdminDashboardController(AppDbContext dbContext) : Controlle
                 x.CustomerInfo.City,
                 x.CustomerInfo.State,
                 x.FulfillmentType,
+                x.OriginalAmount,
+                x.DiscountAmount,
                 x.TotalAmount,
                 x.Status,
                 x.CreatedAt))

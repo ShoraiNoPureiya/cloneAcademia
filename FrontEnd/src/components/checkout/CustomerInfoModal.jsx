@@ -21,7 +21,8 @@ export default function CustomerInfoModal({
   fulfillmentType,
   onFulfillmentTypeChange,
   onClose,
-  onSubmit
+  onSubmit,
+  children
 }) {
   const [form, setForm] = useState(initialForm);
 
@@ -80,6 +81,7 @@ export default function CustomerInfoModal({
 
         <div className="space-y-4 p-5">
           <StatusMessage type="error">{error}</StatusMessage>
+          {children}
           <input
             className="field"
             placeholder="Nome completo"

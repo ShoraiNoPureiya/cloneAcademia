@@ -9,8 +9,13 @@ export const productsService = {
     }));
   },
 
-  async purchase(productId, quantity = 1, customerInfo, fulfillmentType = 'Delivery') {
-    const { data } = await api.post(`/api/products/${productId}/purchase`, { quantity, fulfillmentType, customerInfo });
+  async purchase(productId, quantity = 1, customerInfo, fulfillmentType = 'Delivery', couponCode = '') {
+    const { data } = await api.post(`/api/products/${productId}/purchase`, {
+      quantity,
+      fulfillmentType,
+      customerInfo,
+      couponCode: couponCode?.trim() || null
+    });
     return data;
   }
 };

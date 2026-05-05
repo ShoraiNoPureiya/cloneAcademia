@@ -19,6 +19,8 @@ public sealed record CustomerProductPurchaseRow(
     Guid Id,
     string ProductName,
     int Quantity,
+    decimal OriginalAmount,
+    decimal DiscountAmount,
     decimal TotalAmount,
     string Status,
     string? PaymentPreferenceId,

@@ -48,6 +48,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         modelBuilder.Entity<ProductPurchase>(entity =>
         {
             entity.Property(x => x.UnitPrice).HasPrecision(18, 2);
+            entity.Property(x => x.OriginalAmount).HasPrecision(18, 2);
+            entity.Property(x => x.DiscountAmount).HasPrecision(18, 2);
             entity.Property(x => x.TotalAmount).HasPrecision(18, 2);
             entity.Property(x => x.Status).HasMaxLength(40);
             entity.Property(x => x.PaymentPreferenceId).HasMaxLength(120);
@@ -63,6 +65,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             });
             entity.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId);
             entity.HasOne(x => x.Product).WithMany().HasForeignKey(x => x.ProductId);
+            entity.HasOne(x => x.Coupon).WithMany(x => x.ProductPurchases).HasForeignKey(x => x.CouponId).OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<Subscription>(entity =>

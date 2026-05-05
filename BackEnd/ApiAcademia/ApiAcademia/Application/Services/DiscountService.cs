@@ -7,6 +7,7 @@ namespace ApiAcademia.Application.Services;
 public interface IDiscountService
 {
     Task<DiscountResult> CalculateAsync(Plan plan, string? couponCode, CancellationToken cancellationToken);
+    Task<DiscountResult> CalculateAsync(decimal originalAmount, string? couponCode, string itemName, CancellationToken cancellationToken);
 }
 
 public sealed record DiscountResult(Coupon? Coupon, decimal OriginalAmount, decimal DiscountAmount, decimal FinalAmount);
@@ -15,9 +16,14 @@ public sealed class DiscountService(IRepository<Coupon> couponRepository) : IDis
 {
     public async Task<DiscountResult> CalculateAsync(Plan plan, string? couponCode, CancellationToken cancellationToken)
     {
+        return await CalculateAsync(plan.Price, couponCode, "plano", cancellationToken);
+    }
+
+    public async Task<DiscountResult> CalculateAsync(decimal originalAmount, string? couponCode, string itemName, CancellationToken cancellationToken)
+    {
         if (string.IsNullOrWhiteSpace(couponCode))
         {
-            return new DiscountResult(null, plan.Price, 0, plan.Price);
+            return new DiscountResult(null, originalAmount, 0, originalAmount);
         }
 
         var normalizedCode = couponCode.Trim().ToUpperInvariant();
@@ -34,12 +40,12 @@ public sealed class DiscountService(IRepository<Coupon> couponRepository) : IDis
             throw new AppException("Cupom expirado.");
         }
 
-        if (coupon.DiscountAmount > plan.Price)
+        if (coupon.DiscountAmount > originalAmount)
         {
-            throw new AppException("Desconto do cupom excede o valor do plano.");
+            throw new AppException($"Desconto do cupom excede o valor do {itemName}.");
         }
 
-        var finalAmount = plan.Price - coupon.DiscountAmount;
-        return new DiscountResult(coupon, plan.Price, coupon.DiscountAmount, finalAmount);
+        var finalAmount = originalAmount - coupon.DiscountAmount;
+        return new DiscountResult(coupon, originalAmount, coupon.DiscountAmount, finalAmount);
     }
 }

@@ -17,4 +17,5 @@ public sealed class Coupon
     public bool Active { get; set; } = true;
 
     public ICollection<Subscription> Subscriptions { get; set; } = [];
+    public ICollection<ProductPurchase> ProductPurchases { get; set; } = [];
 }

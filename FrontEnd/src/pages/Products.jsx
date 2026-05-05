@@ -1,4 +1,4 @@
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Ticket } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CustomerInfoModal from '../components/checkout/CustomerInfoModal.jsx';
@@ -16,6 +16,7 @@ export default function Products() {
   const [message, setMessage] = useState('');
   const [buyingId, setBuyingId] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [productCoupon, setProductCoupon] = useState('');
   const [fulfillmentType, setFulfillmentType] = useState('Delivery');
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -56,13 +57,14 @@ export default function Products() {
     setMessage('');
 
     try {
-      const purchase = await productsService.purchase(product.id, 1, customerInfo, fulfillmentType);
+      const purchase = await productsService.purchase(product.id, 1, customerInfo, fulfillmentType, productCoupon);
       setProducts((current) =>
         current.map((item) =>
           item.id === product.id ? { ...item, stockQuantity: Math.max(0, item.stockQuantity - 1) } : item
         )
       );
       setSelectedProduct(null);
+      setProductCoupon('');
       setFulfillmentType('Delivery');
 
       if (purchase.checkoutUrl) {
@@ -119,6 +121,7 @@ export default function Products() {
                         return;
                       }
                       setFulfillmentType('Delivery');
+                      setProductCoupon('');
                       setSelectedProduct(product);
                     }}
                     disabled={buyingId === product.id || product.stockQuantity <= 0}
@@ -141,10 +144,24 @@ export default function Products() {
           onFulfillmentTypeChange={setFulfillmentType}
           onClose={() => {
             setSelectedProduct(null);
+            setProductCoupon('');
             setFulfillmentType('Delivery');
           }}
           onSubmit={(customerInfo) => handlePurchase(selectedProduct, customerInfo)}
-        />
+        >
+          <div className="rounded-md border border-academy-line bg-black/20 p-3">
+            <label className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-wide text-zinc-500">
+              <Ticket size={15} /> Cupom
+            </label>
+            <input
+              className="field"
+              placeholder="Digite seu cupom"
+              value={productCoupon}
+              maxLength={40}
+              onChange={(event) => setProductCoupon(event.target.value.replace(/[^a-zA-Z0-9_-]/g, '').toUpperCase())}
+            />
+          </div>
+        </CustomerInfoModal>
       </div>
     </section>
   );

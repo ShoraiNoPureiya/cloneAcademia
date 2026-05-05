@@ -299,10 +299,11 @@ export default function AdminDashboard() {
 
               <DataPanel title="Ultimas compras de produtos">
                 <AdminTable
-                  headers={['Aluno', 'Produto', 'Qtd', 'Documento', 'Endereco de envio', 'Total', 'Status']}
+                  headers={['Aluno', 'Produto', 'Cupom', 'Qtd', 'Documento', 'Endereco de envio', 'Total', 'Status']}
                   rows={(dashboard?.recentProductPurchases ?? []).map((item) => [
                     `${item.userName} (${item.userEmail})`,
                     item.productName,
+                    item.couponCode ?? '-',
                     item.quantity,
                     `${item.customerFullName} - CPF ${formatCpf(item.customerCpf)}`,
                     item.fulfillmentType === 'Pickup'
@@ -451,32 +452,56 @@ function ProductControlCard({ product, form, saving, onChange, onSubmit }) {
 
 function AdminTable({ headers, rows }) {
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[640px] text-left text-sm">
-        <thead className="bg-white/5 text-xs uppercase tracking-wide text-zinc-500">
-          <tr>
-            {headers.map((header) => (
-              <th key={header} className="px-5 py-3 font-black">{header}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-academy-line">
-          {rows.length === 0 ? (
+    <>
+      <div className="hidden overflow-x-auto md:block">
+        <table className="w-full min-w-[640px] text-left text-sm">
+          <thead className="bg-white/5 text-xs uppercase tracking-wide text-zinc-500">
             <tr>
-              <td className="px-5 py-5 text-zinc-500" colSpan={headers.length}>Nenhum registro encontrado.</td>
+              {headers.map((header) => (
+                <th key={header} className="px-5 py-3 font-black">{header}</th>
+              ))}
             </tr>
-          ) : (
-            rows.map((row, index) => (
-              <tr key={`${row[0]}-${index}`} className="text-zinc-300">
-                {row.map((cell, cellIndex) => (
-                  <td key={`${cell}-${cellIndex}`} className="px-5 py-4">{cell}</td>
-                ))}
+          </thead>
+          <tbody className="divide-y divide-academy-line">
+            {rows.length === 0 ? (
+              <tr>
+                <td className="px-5 py-5 text-zinc-500" colSpan={headers.length}>Nenhum registro encontrado.</td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-    </div>
+            ) : (
+              rows.map((row, index) => (
+                <tr key={`${row[0]}-${index}`} className="text-zinc-300">
+                  {row.map((cell, cellIndex) => (
+                    <td key={`${cell}-${cellIndex}`} className="px-5 py-4">{cell}</td>
+                  ))}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="grid gap-3 p-4 md:hidden">
+        {rows.length === 0 ? (
+          <p className="rounded-md border border-academy-line bg-white/[0.03] p-4 text-sm text-zinc-500">
+            Nenhum registro encontrado.
+          </p>
+        ) : (
+          rows.map((row, index) => (
+            <article key={`${row[0]}-${index}`} className="rounded-md border border-academy-line bg-white/[0.03] p-4">
+              <p className="break-words text-base font-black text-white">{row[0]}</p>
+              <dl className="mt-3 grid gap-3">
+                {row.slice(1).map((cell, cellIndex) => (
+                  <div key={`${headers[cellIndex + 1]}-${cellIndex}`} className="grid gap-1">
+                    <dt className="text-[11px] font-black uppercase tracking-wide text-zinc-500">{headers[cellIndex + 1]}</dt>
+                    <dd className="break-words text-sm leading-6 text-zinc-300">{cell}</dd>
+                  </div>
+                ))}
+              </dl>
+            </article>
+          ))
+        )}
+      </div>
+    </>
   );
 }
 

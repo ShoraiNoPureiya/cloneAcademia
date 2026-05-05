@@ -79,9 +79,9 @@ public sealed class MercadoPagoPaymentGateway(IConfiguration configuration) : IP
                 {
                     Id = product.Id.ToString(),
                     Title = product.Name,
-                    Quantity = purchase.Quantity,
+                    Quantity = 1,
                     CurrencyId = configuration["MercadoPago:CurrencyId"] ?? "BRL",
-                    UnitPrice = purchase.UnitPrice
+                    UnitPrice = purchase.TotalAmount
                 }
             ],
             Payer = new PreferencePayerRequest

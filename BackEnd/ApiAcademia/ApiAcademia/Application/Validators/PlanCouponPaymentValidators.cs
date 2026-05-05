@@ -171,6 +171,10 @@ public sealed class CreateProductPurchaseRequestValidator : AbstractValidator<Cr
         RuleFor(x => x.Quantity).InclusiveBetween(1, 50);
         RuleFor(x => x.CustomerInfo).NotNull().SetValidator(new CustomerInfoRequestValidator());
         RuleFor(x => x.FulfillmentType).NotEmpty().Must(BeFulfillmentType).WithMessage("Tipo de entrega invalido.");
+        RuleFor(x => x.CouponCode)
+            .MaximumLength(40)
+            .Matches("^[A-Za-z0-9_-]+$")
+            .When(x => !string.IsNullOrWhiteSpace(x.CouponCode));
         RuleFor(x => x.CustomerInfo.ZipCode)
             .NotEmpty()
             .Matches("^\\d{8}$")

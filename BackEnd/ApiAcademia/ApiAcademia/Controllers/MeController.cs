@@ -46,6 +46,8 @@ public sealed class MeController(AppDbContext dbContext) : ControllerBase
                 x.Id,
                 x.Product!.Name,
                 x.Quantity,
+                x.OriginalAmount,
+                x.DiscountAmount,
                 x.TotalAmount,
                 x.Status,
                 x.PaymentPreferenceId,

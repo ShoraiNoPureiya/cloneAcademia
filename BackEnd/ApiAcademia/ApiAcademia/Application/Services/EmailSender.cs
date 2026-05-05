@@ -51,20 +51,10 @@ public sealed class SmtpEmailSender(IConfiguration configuration, ILogger<SmtpEm
         {
             await client.SendMailAsync(message, cancellationToken);
         }
-        catch (SmtpException exception)
-        {
-            logger.LogError(exception, "Falha ao enviar email SMTP para {Email}.", to);
-            throw new AppException("Nao foi possivel enviar o email de verificacao.", StatusCodes.Status502BadGateway);
-        }
-        catch (AuthenticationException exception)
-        {
-            logger.LogError(exception, "Falha de autenticacao SMTP para {Email}.", to);
-            throw new AppException("Falha de autenticacao SMTP. Verifique usuario, senha de app e SSL.", StatusCodes.Status502BadGateway);
-        }
         catch (Exception exception)
         {
             logger.LogError(exception, "Falha inesperada ao enviar email SMTP para {Email}.", to);
-            throw new AppException("Nao foi possivel enviar email via SMTP. Verifique as variaveis Smtp__Host, Smtp__Port, Smtp__User, Smtp__Password e Smtp__From.", StatusCodes.Status502BadGateway);
+            throw new AppException("Nao foi possivel enviar email via SMTP. Verifique host, porta, usuario, senha, remetente e SSL.", StatusCodes.Status502BadGateway);
         }
     }
 

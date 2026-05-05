@@ -18,6 +18,7 @@ public sealed class ProductPurchasesController(
     IRepository<User> userRepository,
     IRepository<Product> productRepository,
     IRepository<ProductPurchase> purchaseRepository,
+    IDiscountService discountService,
     IPaymentGateway paymentGateway) : ControllerBase
 {
     [HttpPost("{id:guid}/purchase")]
@@ -52,14 +53,19 @@ public sealed class ProductPurchasesController(
         var fulfillmentType = string.Equals(request.FulfillmentType, "Pickup", StringComparison.OrdinalIgnoreCase)
             ? "Pickup"
             : "Delivery";
+        var originalAmount = product.Price * request.Quantity;
+        var discount = await discountService.CalculateAsync(originalAmount, request.CouponCode, "produto", cancellationToken);
 
         var purchase = new ProductPurchase
         {
             UserId = userId,
             ProductId = product.Id,
+            CouponId = discount.Coupon?.Id,
             Quantity = request.Quantity,
             UnitPrice = product.Price,
-            TotalAmount = product.Price * request.Quantity,
+            OriginalAmount = discount.OriginalAmount,
+            DiscountAmount = discount.DiscountAmount,
+            TotalAmount = discount.FinalAmount,
             Status = "Pending",
             FulfillmentType = fulfillmentType,
             CustomerInfo = new CustomerInfo
@@ -82,6 +88,8 @@ public sealed class ProductPurchasesController(
             purchase.Id,
             product.Id,
             purchase.Quantity,
+            purchase.OriginalAmount,
+            purchase.DiscountAmount,
             purchase.TotalAmount,
             purchase.Status,
             preference.Id,
