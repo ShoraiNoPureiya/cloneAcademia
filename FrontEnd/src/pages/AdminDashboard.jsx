@@ -1,4 +1,4 @@
-import { BadgeDollarSign, Boxes, Loader2, Plus, ReceiptText, Ticket, Users } from 'lucide-react';
+import { BadgeDollarSign, Boxes, CalendarClock, Loader2, Plus, ReceiptText, Ticket, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import SectionHeading from '../components/ui/SectionHeading.jsx';
@@ -10,15 +10,18 @@ import { formatCurrency } from '../utils/format.js';
 
 const initialProduct = { name: '', description: '', sku: '', image: null, price: '', stockQuantity: '' };
 const initialCoupon = { code: '', discountAmount: '', expiresAt: '' };
+const initialPlan = { name: '', description: '', price: '', durationMonths: '' };
 
 export default function AdminDashboard() {
   const { isAuthenticated, isAdmin } = useAuth();
   const [dashboard, setDashboard] = useState(null);
   const [products, setProducts] = useState([]);
   const [coupons, setCoupons] = useState([]);
+  const [plans, setPlans] = useState([]);
   const [productForm, setProductForm] = useState(initialProduct);
   const [imagePreview, setImagePreview] = useState('');
   const [couponForm, setCouponForm] = useState(initialCoupon);
+  const [planForm, setPlanForm] = useState(initialPlan);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState('');
   const [message, setMessage] = useState('');
@@ -45,14 +48,16 @@ export default function AdminDashboard() {
     setMessage('');
 
     try {
-      const [dashboardData, productData, couponData] = await Promise.all([
+      const [dashboardData, productData, couponData, planData] = await Promise.all([
         adminService.dashboard(),
         adminService.products(),
-        adminService.coupons()
+        adminService.coupons(),
+        adminService.plans()
       ]);
       setDashboard(dashboardData);
       setProducts(productData);
       setCoupons(couponData);
+      setPlans(planData);
     } catch (error) {
       setMessageType('error');
       setMessage(getApiErrorMessage(error));
@@ -108,6 +113,30 @@ export default function AdminDashboard() {
     }
   }
 
+  async function handleCreatePlan(event) {
+    event.preventDefault();
+    setSaving('plan');
+    setMessage('');
+
+    try {
+      await adminService.createPlan({
+        name: planForm.name,
+        description: planForm.description,
+        price: Number(planForm.price),
+        durationMonths: Number(planForm.durationMonths)
+      });
+      setPlanForm(initialPlan);
+      setMessageType('success');
+      setMessage('Assinatura cadastrada com sucesso.');
+      await loadAdminData();
+    } catch (error) {
+      setMessageType('error');
+      setMessage(getApiErrorMessage(error));
+    } finally {
+      setSaving('');
+    }
+  }
+
   const summary = dashboard?.summary;
 
   return (
@@ -135,7 +164,19 @@ export default function AdminDashboard() {
               <Metric icon={Ticket} label="Cupons ativos" value={summary?.activeCoupons ?? 0} />
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid gap-6 lg:grid-cols-3">
+              <AdminForm title="Cadastrar assinatura" icon={CalendarClock} onSubmit={handleCreatePlan}>
+                <input className="field" placeholder="Nome do plano" value={planForm.name} onChange={(e) => setPlanForm({ ...planForm, name: e.target.value })} required />
+                <textarea className="field min-h-24" placeholder="Descricao do plano" value={planForm.description} onChange={(e) => setPlanForm({ ...planForm, description: e.target.value })} required />
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <input className="field" type="number" step="0.01" min="0.01" placeholder="Preco" value={planForm.price} onChange={(e) => setPlanForm({ ...planForm, price: e.target.value })} required />
+                  <input className="field" type="number" min="1" max="36" placeholder="Meses" value={planForm.durationMonths} onChange={(e) => setPlanForm({ ...planForm, durationMonths: e.target.value })} required />
+                </div>
+                <button className="btn-primary w-full" disabled={saving === 'plan'}>
+                  {saving === 'plan' ? <Loader2 className="animate-spin" size={18} /> : <Plus size={18} />} Salvar assinatura
+                </button>
+              </AdminForm>
+
               <AdminForm title="Cadastrar produto" icon={Boxes} onSubmit={handleCreateProduct}>
                 <input className="field" placeholder="Nome" value={productForm.name} onChange={(e) => setProductForm({ ...productForm, name: e.target.value })} required />
                 <input className="field" placeholder="SKU" value={productForm.sku} onChange={(e) => setProductForm({ ...productForm, sku: e.target.value.toUpperCase() })} required />
@@ -213,6 +254,19 @@ export default function AdminDashboard() {
             </div>
 
             <div className="grid gap-6 xl:grid-cols-2">
+              <DataPanel title="Assinaturas cadastradas">
+                <AdminTable
+                  headers={['Plano', 'Descricao', 'Preco', 'Duracao', 'Ativo']}
+                  rows={plans.map((item) => [
+                    item.name,
+                    item.description,
+                    formatCurrency(item.price),
+                    `${item.durationMonths} mes${item.durationMonths === 1 ? '' : 'es'}`,
+                    item.active ? 'Sim' : 'Nao'
+                  ])}
+                />
+              </DataPanel>
+
               <DataPanel title="Produtos cadastrados">
                 <AdminTable
                   headers={['Produto', 'SKU', 'Imagem', 'Preco', 'Estoque', 'Ativo']}

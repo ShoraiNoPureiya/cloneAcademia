@@ -11,6 +11,16 @@ export const adminService = {
     return data;
   },
 
+  async plans() {
+    const { data } = await api.get('/api/admin/plans');
+    return data;
+  },
+
+  async createPlan(payload) {
+    const { data } = await api.post('/api/admin/plans', payload);
+    return data;
+  },
+
   async createProduct(payload) {
     const formData = new FormData();
     formData.append('name', payload.name);
