@@ -45,6 +45,7 @@ services:
       Smtp__From: ${SMTP_FROM}
       Smtp__DisplayName: ${SMTP_DISPLAY_NAME}
       Smtp__EnableSsl: ${SMTP_ENABLE_SSL}
+      Smtp__TimeoutSeconds: ${SMTP_TIMEOUT_SECONDS:-20}
       SeedAdmin__Email: ${SEED_ADMIN_EMAIL}
       SeedAdmin__Password: ${SEED_ADMIN_PASSWORD}
     ports:

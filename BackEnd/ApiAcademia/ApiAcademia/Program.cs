@@ -111,10 +111,13 @@ builder.Services.AddRateLimiter(options =>
 
 var app = builder.Build();
 
-app.UseForwardedHeaders(new ForwardedHeadersOptions
+var forwardedHeadersOptions = new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-});
+};
+forwardedHeadersOptions.KnownIPNetworks.Clear();
+forwardedHeadersOptions.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedHeadersOptions);
 
 if (app.Environment.IsDevelopment())
 {
@@ -124,8 +127,13 @@ if (app.Environment.IsDevelopment())
 await AppDbInitializer.SeedAsync(app.Services);
 
 app.UseExceptionHandler();
-app.UseHttpsRedirection();
 app.UseCors("Frontend");
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseRateLimiter();
 
 app.UseAuthentication();

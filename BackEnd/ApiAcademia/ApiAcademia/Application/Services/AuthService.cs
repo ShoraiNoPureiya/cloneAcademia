@@ -55,11 +55,20 @@ public sealed class AuthService(
 
         if (requireEmailConfirmation && token is not null)
         {
-            await emailSender.SendAsync(
-                user.Email,
-                "Confirme seu email - PulseFit",
-                BuildEmailConfirmationBody(user.Name, token),
-                cancellationToken);
+            try
+            {
+                await emailSender.SendAsync(
+                    user.Email,
+                    "Confirme seu email - PulseFit",
+                    BuildEmailConfirmationBody(user.Name, token),
+                    cancellationToken);
+            }
+            catch
+            {
+                userRepository.Delete(user);
+                await userRepository.SaveChangesAsync(cancellationToken);
+                throw;
+            }
         }
     }
 

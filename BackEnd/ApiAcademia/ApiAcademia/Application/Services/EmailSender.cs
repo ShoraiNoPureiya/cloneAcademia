@@ -1,7 +1,7 @@
-using System.Net;
-using System.Net.Mail;
-using System.Security.Authentication;
 using ApiAcademia.Application.Exceptions;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
 
 namespace ApiAcademia.Application.Services;
 
@@ -21,6 +21,7 @@ public sealed class SmtpEmailSender(IConfiguration configuration, ILogger<SmtpEm
         var displayName = GetConfig("Smtp:DisplayName", "SmtpDisplayName") ?? "PulseFit Academia";
         var port = GetIntConfig("Smtp:Port", "SmtpPort", 587);
         var enableSsl = GetBoolConfig("Smtp:EnableSsl", "SmtpEnableSsl", true);
+        var timeoutSeconds = GetIntConfig("Smtp:TimeoutSeconds", "SmtpTimeoutSeconds", 20);
 
         if (string.IsNullOrWhiteSpace(host) ||
             string.IsNullOrWhiteSpace(user) ||
@@ -31,25 +32,25 @@ public sealed class SmtpEmailSender(IConfiguration configuration, ILogger<SmtpEm
             throw new AppException("Servico de email nao configurado.", StatusCodes.Status503ServiceUnavailable);
         }
 
-        using var message = new MailMessage
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress(displayName, from));
+        message.To.Add(MailboxAddress.Parse(to));
+        message.Subject = subject;
+        message.Body = new BodyBuilder
         {
-            From = new MailAddress(from, displayName),
-            Subject = subject,
-            Body = body,
-            IsBodyHtml = true
-        };
-        message.To.Add(new MailAddress(to));
+            HtmlBody = body
+        }.ToMessageBody();
 
-        using var client = new SmtpClient(host, port)
-        {
-            EnableSsl = enableSsl,
-            Credentials = new NetworkCredential(user, password),
-            DeliveryMethod = SmtpDeliveryMethod.Network
-        };
+        var socketOptions = GetSecureSocketOptions(port, enableSsl);
 
         try
         {
-            await client.SendMailAsync(message, cancellationToken);
+            using var client = new SmtpClient();
+            client.Timeout = Math.Clamp(timeoutSeconds, 5, 120) * 1000;
+            await client.ConnectAsync(host, port, socketOptions, cancellationToken);
+            await client.AuthenticateAsync(user, password, cancellationToken);
+            await client.SendAsync(message, cancellationToken);
+            await client.DisconnectAsync(true, cancellationToken);
         }
         catch (Exception exception)
         {
@@ -71,6 +72,16 @@ public sealed class SmtpEmailSender(IConfiguration configuration, ILogger<SmtpEm
     private bool GetBoolConfig(string sectionKey, string flatKey, bool defaultValue)
     {
         return bool.TryParse(GetConfig(sectionKey, flatKey), out var value) ? value : defaultValue;
+    }
+
+    private static SecureSocketOptions GetSecureSocketOptions(int port, bool enableSsl)
+    {
+        if (!enableSsl)
+        {
+            return SecureSocketOptions.None;
+        }
+
+        return port == 465 ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls;
     }
 }
 

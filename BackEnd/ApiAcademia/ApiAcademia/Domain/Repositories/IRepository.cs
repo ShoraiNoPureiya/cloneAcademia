@@ -10,5 +10,6 @@ public interface IRepository<TEntity>
     Task<IReadOnlyList<TEntity>> ListAsync(CancellationToken cancellationToken);
     Task AddAsync(TEntity entity, CancellationToken cancellationToken);
     void Update(TEntity entity);
+    void Delete(TEntity entity);
     Task SaveChangesAsync(CancellationToken cancellationToken);
 }

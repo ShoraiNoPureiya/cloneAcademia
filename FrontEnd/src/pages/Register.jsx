@@ -78,7 +78,7 @@ export default function Register() {
           <div className="grid gap-2 rounded-md border border-academy-line bg-black/20 p-3 text-xs">
             {passwordChecks.map((check) => (
               <span key={check.label} className={check.valid ? 'text-academy-neon' : 'text-zinc-500'}>
-                {check.valid ? '✓' : '•'} {check.label}
+                {check.valid ? 'OK' : '-'} {check.label}
               </span>
             ))}
           </div>

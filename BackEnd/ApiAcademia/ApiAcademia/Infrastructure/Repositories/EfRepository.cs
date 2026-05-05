@@ -33,6 +33,11 @@ public sealed class EfRepository<TEntity>(AppDbContext dbContext) : IRepository<
         dbContext.Set<TEntity>().Update(entity);
     }
 
+    public void Delete(TEntity entity)
+    {
+        dbContext.Set<TEntity>().Remove(entity);
+    }
+
     public Task SaveChangesAsync(CancellationToken cancellationToken)
     {
         return dbContext.SaveChangesAsync(cancellationToken);
