@@ -1,5 +1,6 @@
 using ApiAcademia.Api;
 using ApiAcademia.Application.Dtos;
+using ApiAcademia.Application.Exceptions;
 using ApiAcademia.Application.Security;
 using ApiAcademia.Domain.Entities;
 using ApiAcademia.Domain.Repositories;
@@ -46,5 +47,38 @@ public sealed class PlansController(
         await planRepository.AddAsync(plan, cancellationToken);
         await planRepository.SaveChangesAsync(cancellationToken);
         return CreatedAtAction(nameof(List), new { id = plan.Id }, new PlanResponse(plan.Id, plan.Name, plan.Description, plan.Price, plan.DurationMonths, plan.Active));
+    }
+
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(
+        Guid id,
+        UpdatePlanRequest request,
+        IValidator<UpdatePlanRequest> validator,
+        CancellationToken cancellationToken)
+    {
+        if (await validator.ToBadRequestIfInvalidAsync(request, cancellationToken) is { } badRequest)
+        {
+            return badRequest;
+        }
+
+        var plan = await planRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new AppException("Plano nao encontrado.", StatusCodes.Status404NotFound);
+
+        var name = sanitizer.Clean(request.Name);
+        var existing = await planRepository.FirstOrDefaultAsync(x => x.Name == name && x.Id != id, cancellationToken);
+        if (existing is not null)
+        {
+            throw new AppException("Nome de plano ja cadastrado.");
+        }
+
+        plan.Name = name;
+        plan.Description = sanitizer.Clean(request.Description);
+        plan.Price = request.Price;
+        plan.DurationMonths = request.DurationMonths;
+        plan.Active = request.Active;
+
+        planRepository.Update(plan);
+        await planRepository.SaveChangesAsync(cancellationToken);
+        return Ok(new PlanResponse(plan.Id, plan.Name, plan.Description, plan.Price, plan.DurationMonths, plan.Active));
     }
 }

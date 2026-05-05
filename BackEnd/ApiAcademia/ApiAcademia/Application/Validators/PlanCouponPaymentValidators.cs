@@ -16,6 +16,19 @@ public sealed class CreatePlanRequestValidator : AbstractValidator<CreatePlanReq
     private static bool NotContainHtml(string value) => !value.Contains('<') && !value.Contains('>');
 }
 
+public sealed class UpdatePlanRequestValidator : AbstractValidator<UpdatePlanRequest>
+{
+    public UpdatePlanRequestValidator()
+    {
+        RuleFor(x => x.Name).NotEmpty().Length(3, 120).Must(NotContainHtml);
+        RuleFor(x => x.Description).NotEmpty().MaximumLength(500).Must(NotContainHtml);
+        RuleFor(x => x.Price).GreaterThan(0);
+        RuleFor(x => x.DurationMonths).InclusiveBetween(1, 36);
+    }
+
+    private static bool NotContainHtml(string value) => !value.Contains('<') && !value.Contains('>');
+}
+
 public sealed class CreateCouponRequestValidator : AbstractValidator<CreateCouponRequest>
 {
     public CreateCouponRequestValidator()
@@ -23,6 +36,17 @@ public sealed class CreateCouponRequestValidator : AbstractValidator<CreateCoupo
         RuleFor(x => x.Code).NotEmpty().Length(3, 40).Matches("^[A-Za-z0-9_-]+$");
         RuleFor(x => x.DiscountAmount).GreaterThan(0);
         RuleFor(x => x.ExpiresAt).GreaterThan(DateTimeOffset.UtcNow);
+    }
+}
+
+public sealed class UpdateCouponRequestValidator : AbstractValidator<UpdateCouponRequest>
+{
+    public UpdateCouponRequestValidator()
+    {
+        RuleFor(x => x.Code).NotEmpty().Length(3, 40).Matches("^[A-Za-z0-9_-]+$");
+        RuleFor(x => x.DiscountAmount).GreaterThan(0);
+        RuleFor(x => x.ExpiresAt).GreaterThan(DateTimeOffset.UtcNow)
+            .When(x => x.Active);
     }
 }
 

@@ -20,6 +20,8 @@ export default function AdminDashboard() {
   const [plans, setPlans] = useState([]);
   const [productForm, setProductForm] = useState(initialProduct);
   const [editingProducts, setEditingProducts] = useState({});
+  const [editingPlans, setEditingPlans] = useState({});
+  const [editingCoupons, setEditingCoupons] = useState({});
   const [imagePreview, setImagePreview] = useState('');
   const [couponForm, setCouponForm] = useState(initialCoupon);
   const [planForm, setPlanForm] = useState(initialPlan);
@@ -59,7 +61,9 @@ export default function AdminDashboard() {
       setProducts(productData);
       setEditingProducts(Object.fromEntries(productData.map((product) => [product.id, toProductEditForm(product)])));
       setCoupons(couponData);
+      setEditingCoupons(Object.fromEntries(couponData.map((coupon) => [coupon.id, toCouponEditForm(coupon)])));
       setPlans(planData);
+      setEditingPlans(Object.fromEntries(planData.map((plan) => [plan.id, toPlanEditForm(plan)])));
     } catch (error) {
       setMessageType('error');
       setMessage(getApiErrorMessage(error));
@@ -131,6 +135,47 @@ export default function AdminDashboard() {
     }));
   }
 
+  async function handleUpdatePlan(event, id) {
+    event.preventDefault();
+    const form = editingPlans[id];
+    if (!form) {
+      return;
+    }
+
+    setSaving(`plan-${id}`);
+    setMessage('');
+
+    try {
+      const updated = await adminService.updatePlan(id, {
+        name: form.name,
+        description: form.description,
+        price: Number(form.price),
+        durationMonths: Number(form.durationMonths),
+        active: Boolean(form.active)
+      });
+      setPlans((current) => current.map((plan) => (plan.id === id ? updated : plan)));
+      setEditingPlans((current) => ({ ...current, [id]: toPlanEditForm(updated) }));
+      setMessageType('success');
+      setMessage('Assinatura atualizada com sucesso.');
+      await loadAdminData();
+    } catch (error) {
+      setMessageType('error');
+      setMessage(getApiErrorMessage(error));
+    } finally {
+      setSaving('');
+    }
+  }
+
+  function updatePlanDraft(id, patch) {
+    setEditingPlans((current) => ({
+      ...current,
+      [id]: {
+        ...current[id],
+        ...patch
+      }
+    }));
+  }
+
   async function handleCreateCoupon(event) {
     event.preventDefault();
     setSaving('coupon');
@@ -152,6 +197,46 @@ export default function AdminDashboard() {
     } finally {
       setSaving('');
     }
+  }
+
+  async function handleUpdateCoupon(event, id) {
+    event.preventDefault();
+    const form = editingCoupons[id];
+    if (!form) {
+      return;
+    }
+
+    setSaving(`coupon-${id}`);
+    setMessage('');
+
+    try {
+      const updated = await adminService.updateCoupon(id, {
+        code: form.code,
+        discountAmount: Number(form.discountAmount),
+        expiresAt: new Date(form.expiresAt).toISOString(),
+        active: Boolean(form.active)
+      });
+      setCoupons((current) => current.map((coupon) => (coupon.id === id ? updated : coupon)));
+      setEditingCoupons((current) => ({ ...current, [id]: toCouponEditForm(updated) }));
+      setMessageType('success');
+      setMessage('Cupom atualizado com sucesso.');
+      await loadAdminData();
+    } catch (error) {
+      setMessageType('error');
+      setMessage(getApiErrorMessage(error));
+    } finally {
+      setSaving('');
+    }
+  }
+
+  function updateCouponDraft(id, patch) {
+    setEditingCoupons((current) => ({
+      ...current,
+      [id]: {
+        ...current[id],
+        ...patch
+      }
+    }));
   }
 
   async function handleCreatePlan(event) {
@@ -280,6 +365,44 @@ export default function AdminDashboard() {
                 )}
               </div>
             </DataPanel>
+
+            <div className="grid gap-6 xl:grid-cols-2">
+              <DataPanel title="Controle de assinaturas">
+                <div className="grid gap-4 p-5">
+                  {plans.length === 0 ? (
+                    <EmptyPanel icon={CalendarClock} text="Nenhuma assinatura cadastrada." />
+                  ) : (
+                    plans.map((plan) => (
+                      <PlanControlCard
+                        key={plan.id}
+                        form={editingPlans[plan.id] ?? toPlanEditForm(plan)}
+                        saving={saving === `plan-${plan.id}`}
+                        onChange={(patch) => updatePlanDraft(plan.id, patch)}
+                        onSubmit={(event) => handleUpdatePlan(event, plan.id)}
+                      />
+                    ))
+                  )}
+                </div>
+              </DataPanel>
+
+              <DataPanel title="Controle de cupons">
+                <div className="grid gap-4 p-5">
+                  {coupons.length === 0 ? (
+                    <EmptyPanel icon={Ticket} text="Nenhum cupom cadastrado." />
+                  ) : (
+                    coupons.map((coupon) => (
+                      <CouponControlCard
+                        key={coupon.id}
+                        form={editingCoupons[coupon.id] ?? toCouponEditForm(coupon)}
+                        saving={saving === `coupon-${coupon.id}`}
+                        onChange={(patch) => updateCouponDraft(coupon.id, patch)}
+                        onSubmit={(event) => handleUpdateCoupon(event, coupon.id)}
+                      />
+                    ))
+                  )}
+                </div>
+              </DataPanel>
+            </div>
 
             <div className="grid gap-6 xl:grid-cols-2">
               <DataPanel title="Ultimas assinaturas">
@@ -450,6 +573,62 @@ function ProductControlCard({ product, form, saving, onChange, onSubmit }) {
   );
 }
 
+function PlanControlCard({ form, saving, onChange, onSubmit }) {
+  return (
+    <form onSubmit={onSubmit} className="rounded-md border border-academy-line bg-white/[0.03] p-4">
+      <div className="grid gap-3">
+        <div className="grid gap-3 sm:grid-cols-[1fr_140px]">
+          <input className="field" placeholder="Nome do plano" value={form.name} onChange={(e) => onChange({ name: e.target.value })} required />
+          <label className="flex items-center justify-between gap-3 rounded-md border border-academy-line bg-academy-panel px-4 py-3 text-sm font-bold text-zinc-300">
+            Ativo
+            <input type="checkbox" checked={Boolean(form.active)} onChange={(e) => onChange({ active: e.target.checked })} />
+          </label>
+        </div>
+        <textarea className="field min-h-24" placeholder="Descricao do plano" value={form.description} onChange={(e) => onChange({ description: e.target.value })} required />
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_150px_auto]">
+        <input className="field" type="number" step="0.01" min="0.01" placeholder="Preco" value={form.price} onChange={(e) => onChange({ price: e.target.value })} required />
+        <input className="field" type="number" min="1" max="36" placeholder="Meses" value={form.durationMonths} onChange={(e) => onChange({ durationMonths: e.target.value })} required />
+        <button className="btn-primary" disabled={saving}>
+          {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} Atualizar
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function CouponControlCard({ form, saving, onChange, onSubmit }) {
+  return (
+    <form onSubmit={onSubmit} className="rounded-md border border-academy-line bg-white/[0.03] p-4">
+      <div className="grid gap-3 sm:grid-cols-[1fr_160px]">
+        <input className="field" placeholder="Codigo" value={form.code} onChange={(e) => onChange({ code: e.target.value.toUpperCase() })} required />
+        <label className="flex items-center justify-between gap-3 rounded-md border border-academy-line bg-academy-panel px-4 py-3 text-sm font-bold text-zinc-300">
+          Ativo
+          <input type="checkbox" checked={Boolean(form.active)} onChange={(e) => onChange({ active: e.target.checked })} />
+        </label>
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+        <input className="field" type="number" step="0.01" min="0.01" placeholder="Desconto" value={form.discountAmount} onChange={(e) => onChange({ discountAmount: e.target.value })} required />
+        <input className="field" type="datetime-local" value={form.expiresAt} onChange={(e) => onChange({ expiresAt: e.target.value })} required />
+        <button className="btn-primary" disabled={saving}>
+          {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} Atualizar
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function EmptyPanel({ icon: Icon, text }) {
+  return (
+    <div className="rounded-md border border-dashed border-academy-line bg-black/20 p-6 text-center">
+      <Icon className="mx-auto text-zinc-600" size={28} />
+      <p className="mt-3 text-sm text-zinc-500">{text}</p>
+    </div>
+  );
+}
+
 function AdminTable({ headers, rows }) {
   return (
     <>
@@ -482,20 +661,30 @@ function AdminTable({ headers, rows }) {
 
       <div className="grid gap-3 p-4 md:hidden">
         {rows.length === 0 ? (
-          <p className="rounded-md border border-academy-line bg-white/[0.03] p-4 text-sm text-zinc-500">
-            Nenhum registro encontrado.
-          </p>
+          <div className="rounded-md border border-dashed border-academy-line bg-black/20 p-6 text-center">
+            <ReceiptText className="mx-auto text-zinc-600" size={28} />
+            <p className="mt-3 text-sm text-zinc-500">Nenhum registro encontrado.</p>
+          </div>
         ) : (
           rows.map((row, index) => (
-            <article key={`${row[0]}-${index}`} className="rounded-md border border-academy-line bg-white/[0.03] p-4">
-              <p className="break-words text-base font-black text-white">{row[0]}</p>
-              <dl className="mt-3 grid gap-3">
-                {row.slice(1).map((cell, cellIndex) => (
-                  <div key={`${headers[cellIndex + 1]}-${cellIndex}`} className="grid gap-1">
-                    <dt className="text-[11px] font-black uppercase tracking-wide text-zinc-500">{headers[cellIndex + 1]}</dt>
-                    <dd className="break-words text-sm leading-6 text-zinc-300">{cell}</dd>
-                  </div>
-                ))}
+            <article key={`${row[0]}-${index}`} className="overflow-hidden rounded-md border border-academy-line bg-white/[0.03]">
+              <div className="border-b border-academy-line bg-white/[0.04] p-4">
+                <p className="text-[11px] font-black uppercase tracking-wide text-academy-neon">{headers[0]}</p>
+                <p className="mt-1 break-words text-base font-black leading-6 text-white">{row[0]}</p>
+              </div>
+              <dl className="grid gap-0">
+                {row.slice(1).map((cell, cellIndex) => {
+                  const label = headers[cellIndex + 1];
+                  const isStatus = label?.toLowerCase() === 'status' || label?.toLowerCase() === 'ativo';
+                  return (
+                    <div key={`${label}-${cellIndex}`} className="grid grid-cols-[104px_1fr] gap-3 border-b border-academy-line/70 px-4 py-3 last:border-b-0">
+                      <dt className="text-[10px] font-black uppercase tracking-wide text-zinc-500">{label}</dt>
+                      <dd className="min-w-0 break-words text-sm leading-6 text-zinc-300">
+                        {isStatus ? <StatusPill value={cell} /> : cell}
+                      </dd>
+                    </div>
+                  );
+                })}
               </dl>
             </article>
           ))
@@ -503,6 +692,52 @@ function AdminTable({ headers, rows }) {
       </div>
     </>
   );
+}
+
+function StatusPill({ value }) {
+  const normalized = String(value ?? '').toLowerCase();
+  const isPositive = ['sim', 'paid', 'pago', 'ativo'].includes(normalized);
+  const isPending = ['pending', 'pendente'].includes(normalized);
+  const styles = isPositive
+    ? 'border-academy-neon/30 bg-academy-neon/10 text-academy-neon'
+    : isPending
+      ? 'border-academy-cyan/30 bg-academy-cyan/10 text-cyan-100'
+      : 'border-zinc-500/30 bg-zinc-500/10 text-zinc-200';
+
+  return <span className={`inline-flex rounded-md border px-2.5 py-1 text-xs font-black uppercase ${styles}`}>{value}</span>;
+}
+
+function toPlanEditForm(plan) {
+  return {
+    name: plan.name ?? '',
+    description: plan.description ?? '',
+    price: plan.price ?? '',
+    durationMonths: plan.durationMonths ?? 1,
+    active: Boolean(plan.active)
+  };
+}
+
+function toCouponEditForm(coupon) {
+  return {
+    code: coupon.code ?? '',
+    discountAmount: coupon.discountAmount ?? '',
+    expiresAt: toDateTimeLocal(coupon.expiresAt),
+    active: Boolean(coupon.active)
+  };
+}
+
+function toDateTimeLocal(value) {
+  if (!value) {
+    return '';
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return offsetDate.toISOString().slice(0, 16);
 }
 
 function toProductEditForm(product) {

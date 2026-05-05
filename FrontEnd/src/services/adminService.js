@@ -47,6 +47,11 @@ export const adminService = {
     return data;
   },
 
+  async updatePlan(id, payload) {
+    const { data } = await api.put(`/api/admin/plans/${id}`, payload);
+    return data;
+  },
+
   async createProduct(payload) {
     const formData = new FormData();
     formData.append('name', payload.name);
@@ -71,6 +76,11 @@ export const adminService = {
 
   async createCoupon(payload) {
     const { data } = await api.post('/api/admin/coupons', payload);
+    return data;
+  },
+
+  async updateCoupon(id, payload) {
+    const { data } = await api.put(`/api/admin/coupons/${id}`, payload);
     return data;
   }
 };

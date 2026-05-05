@@ -1,5 +1,6 @@
 using ApiAcademia.Api;
 using ApiAcademia.Application.Dtos;
+using ApiAcademia.Application.Exceptions;
 using ApiAcademia.Domain.Entities;
 using ApiAcademia.Domain.Repositories;
 using FluentValidation;
@@ -42,5 +43,37 @@ public sealed class CouponsController(IRepository<Coupon> couponRepository) : Co
         await couponRepository.AddAsync(coupon, cancellationToken);
         await couponRepository.SaveChangesAsync(cancellationToken);
         return CreatedAtAction(nameof(List), new { id = coupon.Id }, new CouponResponse(coupon.Id, coupon.Code, coupon.DiscountAmount, coupon.ExpiresAt, coupon.Active));
+    }
+
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(
+        Guid id,
+        UpdateCouponRequest request,
+        IValidator<UpdateCouponRequest> validator,
+        CancellationToken cancellationToken)
+    {
+        if (await validator.ToBadRequestIfInvalidAsync(request, cancellationToken) is { } badRequest)
+        {
+            return badRequest;
+        }
+
+        var coupon = await couponRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new AppException("Cupom nao encontrado.", StatusCodes.Status404NotFound);
+
+        var code = request.Code.Trim().ToUpperInvariant();
+        var existing = await couponRepository.FirstOrDefaultAsync(x => x.Code == code && x.Id != id, cancellationToken);
+        if (existing is not null)
+        {
+            throw new AppException("Codigo de cupom ja cadastrado.");
+        }
+
+        coupon.Code = code;
+        coupon.DiscountAmount = request.DiscountAmount;
+        coupon.ExpiresAt = request.ExpiresAt;
+        coupon.Active = request.Active;
+
+        couponRepository.Update(coupon);
+        await couponRepository.SaveChangesAsync(cancellationToken);
+        return Ok(new CouponResponse(coupon.Id, coupon.Code, coupon.DiscountAmount, coupon.ExpiresAt, coupon.Active));
     }
 }
