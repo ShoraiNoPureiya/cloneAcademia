@@ -43,6 +43,17 @@ public sealed class CheckoutRequestValidator : AbstractValidator<CheckoutRequest
             .Must(NotContainHtml)
             .WithMessage("Endereco invalido.")
             .When(x => x.CustomerInfo is not null);
+        RuleFor(x => x.CustomerInfo.City)
+            .NotEmpty()
+            .Length(2, 120)
+            .Must(NotContainHtml)
+            .WithMessage("Cidade invalida.")
+            .When(x => x.CustomerInfo is not null);
+        RuleFor(x => x.CustomerInfo.State)
+            .NotEmpty()
+            .Matches("^[A-Za-z]{2}$")
+            .WithMessage("Estado deve conter a UF com 2 letras.")
+            .When(x => x.CustomerInfo is not null);
         RuleFor(x => x.CouponCode)
             .MaximumLength(40)
             .Matches("^[A-Za-z0-9_-]+$")
@@ -62,6 +73,10 @@ public sealed class CustomerInfoRequestValidator : AbstractValidator<CustomerInf
             .When(x => !string.IsNullOrWhiteSpace(x.ZipCode));
         RuleFor(x => x.Address).Length(8, 240).Must(NotContainHtml)
             .When(x => !string.IsNullOrWhiteSpace(x.Address));
+        RuleFor(x => x.City).Length(2, 120).Must(NotContainHtml)
+            .When(x => !string.IsNullOrWhiteSpace(x.City));
+        RuleFor(x => x.State).Matches("^[A-Za-z]{2}$").WithMessage("Estado deve conter a UF com 2 letras.")
+            .When(x => !string.IsNullOrWhiteSpace(x.State));
     }
 
     private static bool NotContainHtml(string value) => !value.Contains('<') && !value.Contains('>');
@@ -130,6 +145,7 @@ public sealed class UpdateProductRequestValidator : AbstractValidator<UpdateProd
     {
         RuleFor(x => x.Name).NotEmpty().Length(3, 120).Must(NotContainHtml);
         RuleFor(x => x.Description).NotEmpty().MaximumLength(500).Must(NotContainHtml);
+        RuleFor(x => x.Sku).NotEmpty().Length(3, 60).Matches("^[A-Za-z0-9_-]+$");
         RuleFor(x => x.Image)
             .Must(x => x is null || BeSafeImage(x))
             .WithMessage("Envie uma imagem JPG, PNG ou WEBP com ate 2MB.");
@@ -165,6 +181,17 @@ public sealed class CreateProductPurchaseRequestValidator : AbstractValidator<Cr
             .Length(8, 240)
             .Must(value => !value.Contains('<') && !value.Contains('>'))
             .WithMessage("Endereco invalido.")
+            .When(x => x.CustomerInfo is not null && IsDelivery(x.FulfillmentType));
+        RuleFor(x => x.CustomerInfo.City)
+            .NotEmpty()
+            .Length(2, 120)
+            .Must(value => !value.Contains('<') && !value.Contains('>'))
+            .WithMessage("Cidade invalida.")
+            .When(x => x.CustomerInfo is not null && IsDelivery(x.FulfillmentType));
+        RuleFor(x => x.CustomerInfo.State)
+            .NotEmpty()
+            .Matches("^[A-Za-z]{2}$")
+            .WithMessage("Estado deve conter a UF com 2 letras.")
             .When(x => x.CustomerInfo is not null && IsDelivery(x.FulfillmentType));
     }
 

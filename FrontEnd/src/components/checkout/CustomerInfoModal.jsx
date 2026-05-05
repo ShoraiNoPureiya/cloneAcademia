@@ -6,7 +6,9 @@ const initialForm = {
   fullName: '',
   cpf: '',
   zipCode: '',
-  address: ''
+  address: '',
+  city: '',
+  state: ''
 };
 
 export default function CustomerInfoModal({
@@ -27,7 +29,11 @@ export default function CustomerInfoModal({
     return (
       form.fullName.trim().length >= 5 &&
       onlyDigits(form.cpf).length === 11 &&
-      (!requireAddress || (onlyDigits(form.zipCode).length === 8 && form.address.trim().length >= 8))
+      (!requireAddress ||
+        (onlyDigits(form.zipCode).length === 8 &&
+          form.address.trim().length >= 8 &&
+          form.city.trim().length >= 2 &&
+          form.state.trim().length === 2))
     );
   }, [form, requireAddress]);
 
@@ -45,7 +51,9 @@ export default function CustomerInfoModal({
       fullName: form.fullName.trim(),
       cpf: onlyDigits(form.cpf),
       zipCode: requireAddress ? onlyDigits(form.zipCode) : '',
-      address: requireAddress ? form.address.trim() : ''
+      address: requireAddress ? form.address.trim() : '',
+      city: requireAddress ? form.city.trim() : '',
+      state: requireAddress ? form.state.trim().toUpperCase() : ''
     });
   }
 
@@ -120,13 +128,32 @@ export default function CustomerInfoModal({
             )}
           </div>
           {requireAddress ? (
-            <textarea
-              className="field min-h-24"
-              placeholder="Endereco completo: rua, numero, bairro, cidade e UF"
-              value={form.address}
-              onChange={(event) => setForm({ ...form, address: event.target.value })}
-              required
-            />
+            <>
+              <textarea
+                className="field min-h-24"
+                placeholder="Endereco: rua, numero, complemento e bairro"
+                value={form.address}
+                onChange={(event) => setForm({ ...form, address: event.target.value })}
+                required
+              />
+              <div className="grid gap-4 sm:grid-cols-[1fr_110px]">
+                <input
+                  className="field"
+                  placeholder="Cidade"
+                  value={form.city}
+                  onChange={(event) => setForm({ ...form, city: event.target.value })}
+                  required
+                />
+                <input
+                  className="field uppercase"
+                  placeholder="UF"
+                  maxLength={2}
+                  value={form.state}
+                  onChange={(event) => setForm({ ...form, state: event.target.value.replace(/[^a-zA-Z]/g, '').toUpperCase() })}
+                  required
+                />
+              </div>
+            </>
           ) : (
             <div className="rounded-md border border-academy-line bg-white/5 p-4 text-sm leading-6 text-zinc-300">
               Voce retirara o produto no local. O administrador vera seu nome e CPF para conferir a retirada.

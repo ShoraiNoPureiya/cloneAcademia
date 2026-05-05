@@ -86,8 +86,16 @@ public sealed class ProductsController(
         var product = await productRepository.GetByIdAsync(id, cancellationToken)
             ?? throw new AppException("Produto nao encontrado.", StatusCodes.Status404NotFound);
 
+        var sku = request.Sku.Trim().ToUpperInvariant();
+        var existingSku = await productRepository.FirstOrDefaultAsync(x => x.Sku == sku && x.Id != id, cancellationToken);
+        if (existingSku is not null)
+        {
+            throw new AppException("SKU ja cadastrado.");
+        }
+
         product.Name = sanitizer.Clean(request.Name);
         product.Description = sanitizer.Clean(request.Description);
+        product.Sku = sku;
         if (request.Image is not null)
         {
             product.ImageData = await ReadImageBytesAsync(request.Image, cancellationToken);

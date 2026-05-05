@@ -1,4 +1,4 @@
-import { BadgeDollarSign, Boxes, CalendarClock, Loader2, Plus, ReceiptText, Ticket, Users } from 'lucide-react';
+import { BadgeDollarSign, Boxes, CalendarClock, Loader2, Minus, Plus, ReceiptText, Save, Ticket, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import SectionHeading from '../components/ui/SectionHeading.jsx';
@@ -19,6 +19,7 @@ export default function AdminDashboard() {
   const [coupons, setCoupons] = useState([]);
   const [plans, setPlans] = useState([]);
   const [productForm, setProductForm] = useState(initialProduct);
+  const [editingProducts, setEditingProducts] = useState({});
   const [imagePreview, setImagePreview] = useState('');
   const [couponForm, setCouponForm] = useState(initialCoupon);
   const [planForm, setPlanForm] = useState(initialPlan);
@@ -56,6 +57,7 @@ export default function AdminDashboard() {
       ]);
       setDashboard(dashboardData);
       setProducts(productData);
+      setEditingProducts(Object.fromEntries(productData.map((product) => [product.id, toProductEditForm(product)])));
       setCoupons(couponData);
       setPlans(planData);
     } catch (error) {
@@ -88,6 +90,45 @@ export default function AdminDashboard() {
     } finally {
       setSaving('');
     }
+  }
+
+  async function handleUpdateProduct(event, id) {
+    event.preventDefault();
+    const form = editingProducts[id];
+    if (!form) {
+      return;
+    }
+
+    setSaving(`product-${id}`);
+    setMessage('');
+
+    try {
+      const updated = await adminService.updateProduct(id, {
+        ...form,
+        price: Number(form.price),
+        stockQuantity: Number(form.stockQuantity)
+      });
+      setProducts((current) => current.map((product) => (product.id === id ? updated : product)));
+      setEditingProducts((current) => ({ ...current, [id]: toProductEditForm(updated) }));
+      setMessageType('success');
+      setMessage('Produto atualizado com sucesso.');
+      await loadAdminData();
+    } catch (error) {
+      setMessageType('error');
+      setMessage(getApiErrorMessage(error));
+    } finally {
+      setSaving('');
+    }
+  }
+
+  function updateProductDraft(id, patch) {
+    setEditingProducts((current) => ({
+      ...current,
+      [id]: {
+        ...current[id],
+        ...patch
+      }
+    }));
   }
 
   async function handleCreateCoupon(event) {
@@ -221,6 +262,25 @@ export default function AdminDashboard() {
               </AdminForm>
             </div>
 
+            <DataPanel title="Controle de produtos">
+              <div className="grid gap-4 p-5 lg:grid-cols-2">
+                {products.length === 0 ? (
+                  <p className="text-zinc-500">Nenhum produto cadastrado.</p>
+                ) : (
+                  products.map((product) => (
+                    <ProductControlCard
+                      key={product.id}
+                      product={product}
+                      form={editingProducts[product.id] ?? toProductEditForm(product)}
+                      saving={saving === `product-${product.id}`}
+                      onChange={(patch) => updateProductDraft(product.id, patch)}
+                      onSubmit={(event) => handleUpdateProduct(event, product.id)}
+                    />
+                  ))
+                )}
+              </div>
+            </DataPanel>
+
             <div className="grid gap-6 xl:grid-cols-2">
               <DataPanel title="Ultimas assinaturas">
                 <AdminTable
@@ -229,7 +289,7 @@ export default function AdminDashboard() {
                     `${item.userName} (${item.userEmail})`,
                     item.planName,
                     `${item.customerFullName} - CPF ${formatCpf(item.customerCpf)}`,
-                    `${formatZipCode(item.customerZipCode)} - ${item.customerAddress}`,
+                    `${formatZipCode(item.customerZipCode)} - ${item.customerAddress}, ${item.customerCity}/${item.customerState}`,
                     item.couponCode ?? '-',
                     formatCurrency(item.finalAmount),
                     item.status
@@ -247,7 +307,7 @@ export default function AdminDashboard() {
                     `${item.customerFullName} - CPF ${formatCpf(item.customerCpf)}`,
                     item.fulfillmentType === 'Pickup'
                       ? 'Retirada no local'
-                      : `${formatZipCode(item.customerZipCode)} - ${item.customerAddress}`,
+                      : `${formatZipCode(item.customerZipCode)} - ${item.customerAddress}, ${item.customerCity}/${item.customerState}`,
                     formatCurrency(item.totalAmount),
                     item.status
                   ])}
@@ -334,6 +394,61 @@ function DataPanel({ title, children }) {
   );
 }
 
+function ProductControlCard({ product, form, saving, onChange, onSubmit }) {
+  const stock = Number(form.stockQuantity) || 0;
+
+  return (
+    <form onSubmit={onSubmit} className="rounded-md border border-academy-line bg-white/[0.03] p-4">
+      <div className="grid gap-4 sm:grid-cols-[120px_1fr]">
+        <img
+          src={form.previewUrl || product.imageUrl}
+          alt={product.name}
+          className="aspect-square w-full rounded-md border border-academy-line object-cover"
+        />
+        <div className="grid gap-3">
+          <div className="grid gap-3 sm:grid-cols-[1fr_120px]">
+            <input className="field" placeholder="Nome" value={form.name} onChange={(e) => onChange({ name: e.target.value })} required />
+            <input className="field" placeholder="SKU" value={form.sku} onChange={(e) => onChange({ sku: e.target.value.toUpperCase() })} required />
+          </div>
+          <textarea className="field min-h-20" placeholder="Descricao" value={form.description} onChange={(e) => onChange({ description: e.target.value })} required />
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <input className="field" type="number" step="0.01" min="0.01" placeholder="Preco" value={form.price} onChange={(e) => onChange({ price: e.target.value })} required />
+        <div className="flex overflow-hidden rounded-md border border-academy-line bg-academy-panel">
+          <button type="button" className="grid w-12 place-items-center text-academy-neon hover:bg-white/5" onClick={() => onChange({ stockQuantity: Math.max(0, stock - 1) })} aria-label="Remover estoque">
+            <Minus size={16} />
+          </button>
+          <input className="min-w-0 flex-1 bg-transparent px-3 text-center font-bold text-white outline-none" type="number" min="0" value={form.stockQuantity} onChange={(e) => onChange({ stockQuantity: e.target.value })} required />
+          <button type="button" className="grid w-12 place-items-center text-academy-neon hover:bg-white/5" onClick={() => onChange({ stockQuantity: stock + 1 })} aria-label="Adicionar estoque">
+            <Plus size={16} />
+          </button>
+        </div>
+        <label className="flex items-center justify-between gap-3 rounded-md border border-academy-line bg-academy-panel px-4 py-3 text-sm font-bold text-zinc-300">
+          Ativo
+          <input type="checkbox" checked={Boolean(form.active)} onChange={(e) => onChange({ active: e.target.checked })} />
+        </label>
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto]">
+        <input
+          className="field file:mr-4 file:rounded-md file:border-0 file:bg-academy-neon file:px-4 file:py-2 file:text-sm file:font-black file:text-academy-ink"
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          onChange={(e) => {
+            const file = e.target.files?.[0] ?? null;
+            onChange({ image: file, previewUrl: file ? URL.createObjectURL(file) : product.imageUrl });
+          }}
+        />
+        <button className="btn-primary" disabled={saving}>
+          {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} Atualizar
+        </button>
+      </div>
+    </form>
+  );
+}
+
 function AdminTable({ headers, rows }) {
   return (
     <div className="overflow-x-auto">
@@ -363,6 +478,19 @@ function AdminTable({ headers, rows }) {
       </table>
     </div>
   );
+}
+
+function toProductEditForm(product) {
+  return {
+    name: product.name ?? '',
+    description: product.description ?? '',
+    sku: product.sku ?? '',
+    price: product.price ?? '',
+    stockQuantity: product.stockQuantity ?? 0,
+    active: Boolean(product.active),
+    image: null,
+    previewUrl: product.imageUrl ?? ''
+  };
 }
 
 function formatCpf(value = '') {

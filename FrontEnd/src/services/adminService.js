@@ -1,4 +1,4 @@
-import { api } from './api';
+import { API_BASE_URL, api } from './api';
 
 export const adminService = {
   async dashboard() {
@@ -8,12 +8,38 @@ export const adminService = {
 
   async products() {
     const { data } = await api.get('/api/admin/products');
-    return data;
+    return data.map((product) => ({
+      ...product,
+      imageUrl: normalizeImageUrl(product.imageUrl)
+    }));
   },
 
   async plans() {
     const { data } = await api.get('/api/admin/plans');
     return data;
+  },
+
+  async updateProduct(id, payload) {
+    const formData = new FormData();
+    formData.append('name', payload.name);
+    formData.append('description', payload.description);
+    formData.append('sku', payload.sku);
+    formData.append('price', String(payload.price).replace('.', ','));
+    formData.append('stockQuantity', payload.stockQuantity);
+    formData.append('active', payload.active);
+    if (payload.image) {
+      formData.append('image', payload.image);
+    }
+
+    const { data } = await api.put(`/api/admin/products/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return {
+      ...data,
+      imageUrl: normalizeImageUrl(data.imageUrl)
+    };
   },
 
   async createPlan(payload) {
@@ -48,3 +74,15 @@ export const adminService = {
     return data;
   }
 };
+
+function normalizeImageUrl(imageUrl) {
+  if (!imageUrl) {
+    return '';
+  }
+
+  if (imageUrl.startsWith('http')) {
+    return imageUrl;
+  }
+
+  return `${API_BASE_URL}${imageUrl}`;
+}

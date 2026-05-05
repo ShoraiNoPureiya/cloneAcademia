@@ -67,7 +67,9 @@ public sealed class ProductPurchasesController(
                 FullName = request.CustomerInfo.FullName.Trim(),
                 Cpf = OnlyDigits(request.CustomerInfo.Cpf),
                 ZipCode = fulfillmentType == "Delivery" ? OnlyDigits(request.CustomerInfo.ZipCode ?? string.Empty) : string.Empty,
-                Address = fulfillmentType == "Delivery" ? (request.CustomerInfo.Address ?? string.Empty).Trim() : "Retirada no local"
+                Address = fulfillmentType == "Delivery" ? (request.CustomerInfo.Address ?? string.Empty).Trim() : "Retirada no local",
+                City = fulfillmentType == "Delivery" ? (request.CustomerInfo.City ?? string.Empty).Trim() : string.Empty,
+                State = fulfillmentType == "Delivery" ? (request.CustomerInfo.State ?? string.Empty).Trim().ToUpperInvariant() : string.Empty
             }
         };
 

@@ -18,6 +18,8 @@ public sealed record AdminSubscriptionRow(
     string CustomerCpf,
     string CustomerZipCode,
     string CustomerAddress,
+    string CustomerCity,
+    string CustomerState,
     decimal FinalAmount,
     string Status,
     DateTimeOffset StartsAt);
@@ -32,6 +34,8 @@ public sealed record AdminProductPurchaseRow(
     string CustomerCpf,
     string CustomerZipCode,
     string CustomerAddress,
+    string CustomerCity,
+    string CustomerState,
     string FulfillmentType,
     decimal TotalAmount,
     string Status,

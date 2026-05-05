@@ -15,4 +15,10 @@ public sealed class CustomerInfo
 
     [MaxLength(240)]
     public string Address { get; set; } = string.Empty;
+
+    [MaxLength(120)]
+    public string City { get; set; } = string.Empty;
+
+    [MaxLength(2)]
+    public string State { get; set; } = string.Empty;
 }

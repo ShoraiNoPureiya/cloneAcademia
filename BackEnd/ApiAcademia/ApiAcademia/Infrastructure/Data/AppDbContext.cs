@@ -58,6 +58,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
                 customer.Property(x => x.Cpf).HasColumnName("CustomerCpf").HasMaxLength(14);
                 customer.Property(x => x.ZipCode).HasColumnName("CustomerZipCode").HasMaxLength(8);
                 customer.Property(x => x.Address).HasColumnName("CustomerAddress").HasMaxLength(240);
+                customer.Property(x => x.City).HasColumnName("CustomerCity").HasMaxLength(120);
+                customer.Property(x => x.State).HasColumnName("CustomerState").HasMaxLength(2);
             });
             entity.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId);
             entity.HasOne(x => x.Product).WithMany().HasForeignKey(x => x.ProductId);
@@ -74,6 +76,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
                 customer.Property(x => x.Cpf).HasColumnName("CustomerCpf").HasMaxLength(14);
                 customer.Property(x => x.ZipCode).HasColumnName("CustomerZipCode").HasMaxLength(8);
                 customer.Property(x => x.Address).HasColumnName("CustomerAddress").HasMaxLength(240);
+                customer.Property(x => x.City).HasColumnName("CustomerCity").HasMaxLength(120);
+                customer.Property(x => x.State).HasColumnName("CustomerState").HasMaxLength(2);
             });
             entity.HasOne(x => x.User).WithMany(x => x.Subscriptions).HasForeignKey(x => x.UserId);
             entity.HasOne(x => x.Plan).WithMany(x => x.Subscriptions).HasForeignKey(x => x.PlanId);

@@ -170,7 +170,9 @@ public sealed class CheckoutService(
             FullName = request.FullName.Trim(),
             Cpf = OnlyDigits(request.Cpf),
             ZipCode = OnlyDigits(request.ZipCode ?? string.Empty),
-            Address = (request.Address ?? string.Empty).Trim()
+            Address = (request.Address ?? string.Empty).Trim(),
+            City = (request.City ?? string.Empty).Trim(),
+            State = (request.State ?? string.Empty).Trim().ToUpperInvariant()
         };
     }
 
