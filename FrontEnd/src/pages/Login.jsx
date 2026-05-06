@@ -1,4 +1,4 @@
-import { KeyRound, Loader2, ShieldCheck } from 'lucide-react';
+import { KeyRound, Loader2, MailCheck, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import StatusMessage from '../components/ui/StatusMessage.jsx';
@@ -56,6 +56,15 @@ export default function Login() {
           <div className="flex items-center gap-2 text-sm font-bold text-academy-neon">
             <ShieldCheck size={18} /> Login seguro
           </div>
+          <Link
+            to="/confirmar-email"
+            className="flex items-center justify-between gap-3 rounded-md border border-academy-neon/35 bg-academy-neon/10 px-4 py-3 text-sm font-bold text-academy-neon transition hover:bg-academy-neon/15"
+          >
+            <span className="inline-flex items-center gap-2">
+              <MailCheck size={18} /> Confirmar email com codigo
+            </span>
+            <span>Abrir</span>
+          </Link>
           <StatusMessage type={type}>{message}</StatusMessage>
 
           {!pendingEmail ? (

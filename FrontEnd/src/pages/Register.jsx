@@ -1,4 +1,4 @@
-import { Loader2 } from 'lucide-react';
+import { MailCheck, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import StatusMessage from '../components/ui/StatusMessage.jsx';
@@ -57,6 +57,15 @@ export default function Register() {
         </div>
 
         <form onSubmit={handleSubmit} className="surface mx-auto w-full max-w-md space-y-4 p-6">
+          <Link
+            to="/confirmar-email"
+            className="flex items-center justify-between gap-3 rounded-md border border-academy-neon/35 bg-academy-neon/10 px-4 py-3 text-sm font-bold text-academy-neon transition hover:bg-academy-neon/15"
+          >
+            <span className="inline-flex items-center gap-2">
+              <MailCheck size={18} /> Tenho um codigo de verificacao
+            </span>
+            <span>Confirmar</span>
+          </Link>
           <StatusMessage type={type}>{message}</StatusMessage>
           <input
             className="field"
