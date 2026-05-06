@@ -24,7 +24,7 @@ export const adminService = {
     formData.append('name', payload.name);
     formData.append('description', payload.description);
     formData.append('sku', payload.sku);
-    formData.append('price', String(payload.price).replace('.', ','));
+    formData.append('price', toDecimalString(payload.price));
     formData.append('stockQuantity', payload.stockQuantity);
     formData.append('active', payload.active);
     if (payload.image) {
@@ -57,7 +57,7 @@ export const adminService = {
     formData.append('name', payload.name);
     formData.append('description', payload.description);
     formData.append('sku', payload.sku);
-    formData.append('price', String(payload.price).replace('.', ','));
+    formData.append('price', toDecimalString(payload.price));
     formData.append('stockQuantity', payload.stockQuantity);
     formData.append('image', payload.image);
 
@@ -95,4 +95,8 @@ function normalizeImageUrl(imageUrl) {
   }
 
   return `${API_BASE_URL}${imageUrl}`;
+}
+
+function toDecimalString(value) {
+  return String(value ?? '').trim().replace(',', '.');
 }

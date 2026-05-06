@@ -1,4 +1,4 @@
-import { ArrowRight, Bot, CheckCircle2, Clock, ShieldCheck, Sparkles, Zap } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Clock, ShieldCheck, Sparkles, UserRoundCheck, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import OptimizedImage from '../components/ui/OptimizedImage.jsx';
 import SectionHeading from '../components/ui/SectionHeading.jsx';
@@ -7,9 +7,9 @@ const heroImage = 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?
 
 const features = [
   {
-    icon: Bot,
-    title: 'Coach IA',
-    description: 'Treinos ajustados por objetivo, historico e ritmo de evolucao.'
+    icon: UserRoundCheck,
+    title: 'Coach na academia fisica',
+    description: 'Orientacao presencial para ajustar execucao, intensidade e evolucao.'
   },
   {
     icon: Clock,

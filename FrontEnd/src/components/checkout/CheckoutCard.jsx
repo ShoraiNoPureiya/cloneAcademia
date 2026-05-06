@@ -7,6 +7,7 @@ import { checkoutService } from '../../services/checkoutService.js';
 import { formatCurrency } from '../../utils/format.js';
 import CustomerInfoModal from './CustomerInfoModal.jsx';
 import StatusMessage from '../ui/StatusMessage.jsx';
+import DescriptionLines from '../ui/DescriptionLines.jsx';
 
 export default function CheckoutCard({ plan, featured = false }) {
   const [coupon, setCoupon] = useState('');
@@ -61,13 +62,13 @@ export default function CheckoutCard({ plan, featured = false }) {
         </span>
       )}
       <h3 className="text-2xl font-black text-white">{plan.name}</h3>
-      <p className="mt-3 min-h-14 leading-7 text-zinc-400">{plan.description}</p>
+      <DescriptionLines text={plan.description} className="mt-3 min-h-14 space-y-1 leading-7 text-zinc-400" />
       <div className="mt-5">
         <span className="text-4xl font-black text-white">{formatCurrency(plan.price)}</span>
         <span className="text-zinc-500"> / {plan.durationMonths} mes(es)</span>
       </div>
       <ul className="mt-6 space-y-3 text-sm text-zinc-300">
-        {['Acesso completo', 'Coach IA no app', 'Check-in digital', 'Suporte da equipe'].map((benefit) => (
+        {['Acesso completo', 'Coach na academia fisica', 'Check-in digital', 'Suporte da equipe'].map((benefit) => (
           <li key={benefit} className="flex items-center gap-3">
             <Check className="text-academy-neon" size={18} /> {benefit}
           </li>

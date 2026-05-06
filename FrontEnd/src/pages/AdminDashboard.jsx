@@ -80,7 +80,7 @@ export default function AdminDashboard() {
     try {
       await adminService.createProduct({
         ...productForm,
-        price: Number(productForm.price),
+        price: parseDecimalInput(productForm.price),
         stockQuantity: Number(productForm.stockQuantity)
       });
       setProductForm(initialProduct);
@@ -109,7 +109,7 @@ export default function AdminDashboard() {
     try {
       const updated = await adminService.updateProduct(id, {
         ...form,
-        price: Number(form.price),
+        price: parseDecimalInput(form.price),
         stockQuantity: Number(form.stockQuantity)
       });
       setProducts((current) => current.map((product) => (product.id === id ? updated : product)));
@@ -149,7 +149,7 @@ export default function AdminDashboard() {
       const updated = await adminService.updatePlan(id, {
         name: form.name,
         description: form.description,
-        price: Number(form.price),
+        price: parseDecimalInput(form.price),
         durationMonths: Number(form.durationMonths),
         active: Boolean(form.active)
       });
@@ -184,7 +184,7 @@ export default function AdminDashboard() {
     try {
       await adminService.createCoupon({
         code: couponForm.code,
-        discountAmount: Number(couponForm.discountAmount),
+        discountAmount: parseDecimalInput(couponForm.discountAmount),
         expiresAt: new Date(couponForm.expiresAt).toISOString()
       });
       setCouponForm(initialCoupon);
@@ -212,7 +212,7 @@ export default function AdminDashboard() {
     try {
       const updated = await adminService.updateCoupon(id, {
         code: form.code,
-        discountAmount: Number(form.discountAmount),
+        discountAmount: parseDecimalInput(form.discountAmount),
         expiresAt: new Date(form.expiresAt).toISOString(),
         active: Boolean(form.active)
       });
@@ -248,7 +248,7 @@ export default function AdminDashboard() {
       await adminService.createPlan({
         name: planForm.name,
         description: planForm.description,
-        price: Number(planForm.price),
+        price: parseDecimalInput(planForm.price),
         durationMonths: Number(planForm.durationMonths)
       });
       setPlanForm(initialPlan);
@@ -763,4 +763,12 @@ function formatCpf(value = '') {
 
 function formatZipCode(value = '') {
   return value.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2');
+}
+
+function parseDecimalInput(value) {
+  if (typeof value === 'number') {
+    return value;
+  }
+
+  return Number(String(value ?? '').trim().replace(',', '.'));
 }

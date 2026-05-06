@@ -2,6 +2,7 @@ import { ShoppingCart, Ticket } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CustomerInfoModal from '../components/checkout/CustomerInfoModal.jsx';
+import DescriptionLines from '../components/ui/DescriptionLines.jsx';
 import OptimizedImage from '../components/ui/OptimizedImage.jsx';
 import SectionHeading from '../components/ui/SectionHeading.jsx';
 import StatusMessage from '../components/ui/StatusMessage.jsx';
@@ -111,7 +112,7 @@ export default function Products() {
                     </div>
                     <p className="font-black text-academy-neon">{formatCurrency(product.price)}</p>
                   </div>
-                  <p className="mt-4 min-h-14 leading-7 text-zinc-400">{product.description}</p>
+                  <DescriptionLines text={product.description} className="mt-4 min-h-14 space-y-1 leading-7 text-zinc-400" />
                   <button
                     type="button"
                     className="btn-primary mt-5 w-full"
