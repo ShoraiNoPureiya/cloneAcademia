@@ -327,6 +327,9 @@ export default function AdminDashboard() {
   }
 
   const summary = dashboard?.summary;
+  const activeProducts = products.filter((product) => product.active);
+  const activePlans = plans.filter((plan) => plan.active);
+  const activeCoupons = coupons.filter((coupon) => coupon.active);
 
   return (
     <section className="section-y">
@@ -412,10 +415,10 @@ export default function AdminDashboard() {
 
             <DataPanel title="Controle de produtos">
               <div className="grid gap-4 p-5 lg:grid-cols-2">
-                {products.length === 0 ? (
+                {activeProducts.length === 0 ? (
                   <p className="text-zinc-500">Nenhum produto cadastrado.</p>
                 ) : (
-                  products.map((product) => (
+                  activeProducts.map((product) => (
                     <ProductControlCard
                       key={product.id}
                       product={product}
@@ -434,10 +437,10 @@ export default function AdminDashboard() {
             <div className="grid gap-6 xl:grid-cols-2">
               <DataPanel title="Controle de assinaturas">
                 <div className="grid gap-4 p-5">
-                  {plans.length === 0 ? (
+                  {activePlans.length === 0 ? (
                     <EmptyPanel icon={CalendarClock} text="Nenhuma assinatura cadastrada." />
                   ) : (
-                    plans.map((plan) => (
+                    activePlans.map((plan) => (
                       <PlanControlCard
                         key={plan.id}
                         form={editingPlans[plan.id] ?? toPlanEditForm(plan)}
@@ -454,10 +457,10 @@ export default function AdminDashboard() {
 
               <DataPanel title="Controle de cupons">
                 <div className="grid gap-4 p-5">
-                  {coupons.length === 0 ? (
+                  {activeCoupons.length === 0 ? (
                     <EmptyPanel icon={Ticket} text="Nenhum cupom cadastrado." />
                   ) : (
-                    coupons.map((coupon) => (
+                    activeCoupons.map((coupon) => (
                       <CouponControlCard
                         key={coupon.id}
                         form={editingCoupons[coupon.id] ?? toCouponEditForm(coupon)}
