@@ -28,8 +28,16 @@ public static class AppDbInitializer
         var adminEmail = configuration["SeedAdmin:Email"] ?? "admin@pulsefit.com";
         var adminPassword = configuration["SeedAdmin:Password"] ?? "Admin@123456789";
 
-        if (await dbContext.Users.AnyAsync(x => x.Email == adminEmail))
+        var existingAdmin = await dbContext.Users.FirstOrDefaultAsync(x => x.Email == adminEmail);
+        if (existingAdmin is not null)
         {
+            existingAdmin.Name = string.IsNullOrWhiteSpace(existingAdmin.Name) ? "Administrador PulseFit" : existingAdmin.Name;
+            existingAdmin.Role = "Admin";
+            existingAdmin.EmailConfirmed = true;
+            existingAdmin.TwoFactorEnabled = false;
+            existingAdmin.PasswordHash = passwordHasher.HashPassword(existingAdmin, adminPassword);
+            await dbContext.SaveChangesAsync();
+            logger.LogInformation("Admin seed sincronizado para {Email}.", adminEmail);
             return;
         }
 
@@ -45,6 +53,7 @@ public static class AppDbInitializer
 
         await dbContext.Users.AddAsync(admin);
         await dbContext.SaveChangesAsync();
+        logger.LogInformation("Admin seed criado para {Email}.", adminEmail);
     }
 
     private static async Task MigrateWithRetryAsync(AppDbContext dbContext, ILogger logger)
