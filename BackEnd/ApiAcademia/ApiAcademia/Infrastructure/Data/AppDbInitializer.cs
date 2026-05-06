@@ -25,19 +25,25 @@ public static class AppDbInitializer
             return;
         }
 
-        var adminEmail = configuration["SeedAdmin:Email"] ?? "admin@pulsefit.com";
-        var adminPassword = configuration["SeedAdmin:Password"] ?? "Admin@123456789";
+        var adminEmail = (configuration["SeedAdmin:Email"] ?? "admin@pulsefit.com").Trim().ToLowerInvariant();
+        var adminPassword = (configuration["SeedAdmin:Password"] ?? "Admin@123456789").Trim();
 
-        var existingAdmin = await dbContext.Users.FirstOrDefaultAsync(x => x.Email == adminEmail);
+        logger.LogInformation(
+            "Admin seed configurado. EmailConfigurado={EmailConfigured}, SenhaConfigurada={PasswordConfigured}.",
+            !string.IsNullOrWhiteSpace(configuration["SeedAdmin:Email"]),
+            !string.IsNullOrWhiteSpace(configuration["SeedAdmin:Password"]));
+
+        var existingAdmin = await dbContext.Users.FirstOrDefaultAsync(x => x.Email.ToLower() == adminEmail);
         if (existingAdmin is not null)
         {
             existingAdmin.Name = string.IsNullOrWhiteSpace(existingAdmin.Name) ? "Administrador PulseFit" : existingAdmin.Name;
+            existingAdmin.Email = adminEmail;
             existingAdmin.Role = "Admin";
             existingAdmin.EmailConfirmed = true;
             existingAdmin.TwoFactorEnabled = false;
             existingAdmin.PasswordHash = passwordHasher.HashPassword(existingAdmin, adminPassword);
             await dbContext.SaveChangesAsync();
-            logger.LogInformation("Admin seed sincronizado para {Email}.", adminEmail);
+            logger.LogInformation("Admin seed sincronizado para {Email}. UsuarioId={UserId}.", adminEmail, existingAdmin.Id);
             return;
         }
 
