@@ -97,14 +97,14 @@ export default function Products() {
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {products.map((product) => (
-              <article key={product.id} className="surface overflow-hidden">
+              <article key={product.id} className="surface flex h-full flex-col overflow-hidden">
                 <OptimizedImage
                   src={product.imageUrl}
                   alt={product.name}
                   className="aspect-[4/3] w-full object-cover"
                   sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                 />
-                <div className="p-5">
+                <div className="flex flex-1 flex-col p-5">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <h3 className="text-xl font-black text-white">{product.name}</h3>
@@ -115,7 +115,7 @@ export default function Products() {
                   <DescriptionLines text={product.description} className="mt-4 min-h-14 space-y-1 leading-7 text-zinc-400" />
                   <button
                     type="button"
-                    className="btn-primary mt-5 w-full"
+                    className="btn-primary mt-auto w-full"
                     onClick={() => {
                       if (!isAuthenticated) {
                         setMessage('Entre na sua conta para comprar produtos.');

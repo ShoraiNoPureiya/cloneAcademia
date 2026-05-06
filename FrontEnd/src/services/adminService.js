@@ -22,7 +22,7 @@ export const adminService = {
   async updateProduct(id, payload) {
     const formData = new FormData();
     formData.append('name', payload.name);
-    formData.append('description', payload.description);
+    formData.append('description', normalizeDescription(payload.description));
     formData.append('sku', payload.sku);
     formData.append('price', toDecimalString(payload.price));
     formData.append('stockQuantity', payload.stockQuantity);
@@ -43,19 +43,19 @@ export const adminService = {
   },
 
   async createPlan(payload) {
-    const { data } = await api.post('/api/admin/plans', payload);
+    const { data } = await api.post('/api/admin/plans', normalizeTextPayload(payload));
     return data;
   },
 
   async updatePlan(id, payload) {
-    const { data } = await api.put(`/api/admin/plans/${id}`, payload);
+    const { data } = await api.put(`/api/admin/plans/${id}`, normalizeTextPayload(payload));
     return data;
   },
 
   async createProduct(payload) {
     const formData = new FormData();
     formData.append('name', payload.name);
-    formData.append('description', payload.description);
+    formData.append('description', normalizeDescription(payload.description));
     formData.append('sku', payload.sku);
     formData.append('price', toDecimalString(payload.price));
     formData.append('stockQuantity', payload.stockQuantity);
@@ -99,4 +99,19 @@ function normalizeImageUrl(imageUrl) {
 
 function toDecimalString(value) {
   return String(value ?? '').trim().replace(',', '.');
+}
+
+function normalizeTextPayload(payload) {
+  return {
+    ...payload,
+    description: normalizeDescription(payload.description)
+  };
+}
+
+function normalizeDescription(value) {
+  return String(value ?? '')
+    .split(/\r?\n|\s*\+\s*/g)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join('\n');
 }

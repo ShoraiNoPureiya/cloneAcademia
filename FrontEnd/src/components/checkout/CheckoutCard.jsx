@@ -55,7 +55,7 @@ export default function CheckoutCard({ plan, featured = false }) {
   }
 
   return (
-    <article className={`surface flex flex-col p-6 ${featured ? 'border-academy-neon shadow-glow' : ''}`}>
+    <article className={`surface flex h-full flex-col p-6 ${featured ? 'border-academy-neon shadow-glow' : ''}`}>
       {featured && (
         <span className="mb-4 w-fit rounded-md bg-academy-neon px-3 py-1 text-xs font-black uppercase text-academy-ink">
           Mais escolhido
@@ -75,7 +75,7 @@ export default function CheckoutCard({ plan, featured = false }) {
         ))}
       </ul>
 
-      <div className="mt-6 space-y-2">
+      <div className="mt-auto space-y-2 pt-6">
         <label className="flex items-center gap-2 text-sm font-bold text-zinc-200" htmlFor={`coupon-${plan.id}`}>
           <Ticket size={16} /> Cupom
         </label>
