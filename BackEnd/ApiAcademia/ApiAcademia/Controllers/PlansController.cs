@@ -81,4 +81,16 @@ public sealed class PlansController(
         await planRepository.SaveChangesAsync(cancellationToken);
         return Ok(new PlanResponse(plan.Id, plan.Name, plan.Description, plan.Price, plan.DurationMonths, plan.Active));
     }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Deactivate(Guid id, CancellationToken cancellationToken)
+    {
+        var plan = await planRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new AppException("Plano nao encontrado.", StatusCodes.Status404NotFound);
+
+        plan.Active = false;
+        planRepository.Update(plan);
+        await planRepository.SaveChangesAsync(cancellationToken);
+        return NoContent();
+    }
 }

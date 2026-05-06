@@ -76,4 +76,16 @@ public sealed class CouponsController(IRepository<Coupon> couponRepository) : Co
         await couponRepository.SaveChangesAsync(cancellationToken);
         return Ok(new CouponResponse(coupon.Id, coupon.Code, coupon.DiscountAmount, coupon.ExpiresAt, coupon.Active));
     }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Deactivate(Guid id, CancellationToken cancellationToken)
+    {
+        var coupon = await couponRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new AppException("Cupom nao encontrado.", StatusCodes.Status404NotFound);
+
+        coupon.Active = false;
+        couponRepository.Update(coupon);
+        await couponRepository.SaveChangesAsync(cancellationToken);
+        return NoContent();
+    }
 }

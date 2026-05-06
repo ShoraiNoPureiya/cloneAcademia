@@ -1,4 +1,4 @@
-import { BadgeDollarSign, Boxes, CalendarClock, Loader2, Minus, Plus, ReceiptText, Save, Ticket, Users } from 'lucide-react';
+import { BadgeDollarSign, Boxes, CalendarClock, Loader2, Minus, Plus, ReceiptText, Save, Ticket, Trash2, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import SectionHeading from '../components/ui/SectionHeading.jsx';
@@ -135,6 +135,27 @@ export default function AdminDashboard() {
     }));
   }
 
+  async function handleDeleteProduct(id, name) {
+    if (!window.confirm(`Excluir produto "${name}" do catalogo? O historico de compras sera mantido.`)) {
+      return;
+    }
+
+    setSaving(`delete-product-${id}`);
+    setMessage('');
+
+    try {
+      await adminService.deleteProduct(id);
+      setMessageType('success');
+      setMessage('Produto removido do catalogo.');
+      await loadAdminData();
+    } catch (error) {
+      setMessageType('error');
+      setMessage(getApiErrorMessage(error));
+    } finally {
+      setSaving('');
+    }
+  }
+
   async function handleUpdatePlan(event, id) {
     event.preventDefault();
     const form = editingPlans[id];
@@ -174,6 +195,27 @@ export default function AdminDashboard() {
         ...patch
       }
     }));
+  }
+
+  async function handleDeletePlan(id, name) {
+    if (!window.confirm(`Excluir assinatura "${name}" do catalogo? O historico de vendas sera mantido.`)) {
+      return;
+    }
+
+    setSaving(`delete-plan-${id}`);
+    setMessage('');
+
+    try {
+      await adminService.deletePlan(id);
+      setMessageType('success');
+      setMessage('Assinatura removida do catalogo.');
+      await loadAdminData();
+    } catch (error) {
+      setMessageType('error');
+      setMessage(getApiErrorMessage(error));
+    } finally {
+      setSaving('');
+    }
   }
 
   async function handleCreateCoupon(event) {
@@ -237,6 +279,27 @@ export default function AdminDashboard() {
         ...patch
       }
     }));
+  }
+
+  async function handleDeleteCoupon(id, code) {
+    if (!window.confirm(`Excluir cupom "${code}"? Ele nao podera ser usado em novos checkouts.`)) {
+      return;
+    }
+
+    setSaving(`delete-coupon-${id}`);
+    setMessage('');
+
+    try {
+      await adminService.deleteCoupon(id);
+      setMessageType('success');
+      setMessage('Cupom removido.');
+      await loadAdminData();
+    } catch (error) {
+      setMessageType('error');
+      setMessage(getApiErrorMessage(error));
+    } finally {
+      setSaving('');
+    }
   }
 
   async function handleCreatePlan(event) {
@@ -358,8 +421,10 @@ export default function AdminDashboard() {
                       product={product}
                       form={editingProducts[product.id] ?? toProductEditForm(product)}
                       saving={saving === `product-${product.id}`}
+                      deleting={saving === `delete-product-${product.id}`}
                       onChange={(patch) => updateProductDraft(product.id, patch)}
                       onSubmit={(event) => handleUpdateProduct(event, product.id)}
+                      onDelete={() => handleDeleteProduct(product.id, product.name)}
                     />
                   ))
                 )}
@@ -377,8 +442,10 @@ export default function AdminDashboard() {
                         key={plan.id}
                         form={editingPlans[plan.id] ?? toPlanEditForm(plan)}
                         saving={saving === `plan-${plan.id}`}
+                        deleting={saving === `delete-plan-${plan.id}`}
                         onChange={(patch) => updatePlanDraft(plan.id, patch)}
                         onSubmit={(event) => handleUpdatePlan(event, plan.id)}
+                        onDelete={() => handleDeletePlan(plan.id, plan.name)}
                       />
                     ))
                   )}
@@ -395,8 +462,10 @@ export default function AdminDashboard() {
                         key={coupon.id}
                         form={editingCoupons[coupon.id] ?? toCouponEditForm(coupon)}
                         saving={saving === `coupon-${coupon.id}`}
+                        deleting={saving === `delete-coupon-${coupon.id}`}
                         onChange={(patch) => updateCouponDraft(coupon.id, patch)}
                         onSubmit={(event) => handleUpdateCoupon(event, coupon.id)}
+                        onDelete={() => handleDeleteCoupon(coupon.id, coupon.code)}
                       />
                     ))
                   )}
@@ -518,7 +587,7 @@ function DataPanel({ title, children }) {
   );
 }
 
-function ProductControlCard({ product, form, saving, onChange, onSubmit }) {
+function ProductControlCard({ product, form, saving, deleting, onChange, onSubmit, onDelete }) {
   const stock = Number(form.stockQuantity) || 0;
 
   return (
@@ -555,7 +624,7 @@ function ProductControlCard({ product, form, saving, onChange, onSubmit }) {
         </label>
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto]">
+      <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto_auto]">
         <input
           className="field file:mr-4 file:rounded-md file:border-0 file:bg-academy-neon file:px-4 file:py-2 file:text-sm file:font-black file:text-academy-ink"
           type="file"
@@ -568,12 +637,15 @@ function ProductControlCard({ product, form, saving, onChange, onSubmit }) {
         <button className="btn-primary" disabled={saving}>
           {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} Atualizar
         </button>
+        <button type="button" className="btn-secondary border-academy-danger/40 text-red-100 hover:border-academy-danger hover:bg-academy-danger/15" disabled={deleting} onClick={onDelete}>
+          {deleting ? <Loader2 className="animate-spin" size={18} /> : <Trash2 size={18} />} Excluir
+        </button>
       </div>
     </form>
   );
 }
 
-function PlanControlCard({ form, saving, onChange, onSubmit }) {
+function PlanControlCard({ form, saving, deleting, onChange, onSubmit, onDelete }) {
   return (
     <form onSubmit={onSubmit} className="rounded-md border border-academy-line bg-white/[0.03] p-4">
       <div className="grid gap-3">
@@ -587,18 +659,21 @@ function PlanControlCard({ form, saving, onChange, onSubmit }) {
         <textarea className="field min-h-24" placeholder="Descricao do plano" value={form.description} onChange={(e) => onChange({ description: e.target.value })} required />
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_150px_auto]">
+      <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_150px_auto_auto]">
         <input className="field" type="number" step="0.01" min="0.01" placeholder="Preco" value={form.price} onChange={(e) => onChange({ price: e.target.value })} required />
         <input className="field" type="number" min="1" max="36" placeholder="Meses" value={form.durationMonths} onChange={(e) => onChange({ durationMonths: e.target.value })} required />
         <button className="btn-primary" disabled={saving}>
           {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} Atualizar
+        </button>
+        <button type="button" className="btn-secondary border-academy-danger/40 text-red-100 hover:border-academy-danger hover:bg-academy-danger/15" disabled={deleting} onClick={onDelete}>
+          {deleting ? <Loader2 className="animate-spin" size={18} /> : <Trash2 size={18} />} Excluir
         </button>
       </div>
     </form>
   );
 }
 
-function CouponControlCard({ form, saving, onChange, onSubmit }) {
+function CouponControlCard({ form, saving, deleting, onChange, onSubmit, onDelete }) {
   return (
     <form onSubmit={onSubmit} className="rounded-md border border-academy-line bg-white/[0.03] p-4">
       <div className="grid gap-3 sm:grid-cols-[1fr_160px]">
@@ -609,11 +684,14 @@ function CouponControlCard({ form, saving, onChange, onSubmit }) {
         </label>
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+      <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto_auto]">
         <input className="field" type="number" step="0.01" min="0.01" placeholder="Desconto" value={form.discountAmount} onChange={(e) => onChange({ discountAmount: e.target.value })} required />
         <input className="field" type="datetime-local" value={form.expiresAt} onChange={(e) => onChange({ expiresAt: e.target.value })} required />
         <button className="btn-primary" disabled={saving}>
           {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} Atualizar
+        </button>
+        <button type="button" className="btn-secondary border-academy-danger/40 text-red-100 hover:border-academy-danger hover:bg-academy-danger/15" disabled={deleting} onClick={onDelete}>
+          {deleting ? <Loader2 className="animate-spin" size={18} /> : <Trash2 size={18} />} Excluir
         </button>
       </div>
     </form>

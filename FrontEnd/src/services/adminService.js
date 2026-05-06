@@ -42,6 +42,10 @@ export const adminService = {
     };
   },
 
+  deleteProduct(id) {
+    return api.delete(`/api/admin/products/${id}`);
+  },
+
   async createPlan(payload) {
     const { data } = await api.post('/api/admin/plans', normalizeTextPayload(payload));
     return data;
@@ -50,6 +54,10 @@ export const adminService = {
   async updatePlan(id, payload) {
     const { data } = await api.put(`/api/admin/plans/${id}`, normalizeTextPayload(payload));
     return data;
+  },
+
+  deletePlan(id) {
+    return api.delete(`/api/admin/plans/${id}`);
   },
 
   async createProduct(payload) {
@@ -82,6 +90,10 @@ export const adminService = {
   async updateCoupon(id, payload) {
     const { data } = await api.put(`/api/admin/coupons/${id}`, payload);
     return data;
+  },
+
+  deleteCoupon(id) {
+    return api.delete(`/api/admin/coupons/${id}`);
   }
 };
 
